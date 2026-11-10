@@ -14,7 +14,8 @@ class NativeEffects(val actors:Map<String,PokemonBridge.Actor>,seed:Long):SpireE
     private fun ability(mon:SpireCombatant)=actor(mon).ability
     private val major=setOf("poison","toxic","burn","paralysis","sleep")
     private fun spec(move:SpireMove)=MoveCompatibility.specs.getValue(move.id)
-    override fun cost(card:MoveInstance)=MoveCompatibility.cost(card)
+    override fun cost(card:MoveInstance)=if(card.move.trainer)card.move.cost else MoveCompatibility.cost(card)
+    override fun drawCount(card:MoveInstance)=card.move.drawCards+(if(card.move.trainer&&card.upgraded)1 else 0)
     override fun healing(source:SpireCombatant,move:SpireMove)=(source.maxHp*move.healFraction).roundToInt()
     private fun stage(mon:SpireCombatant,key:String,critical:Boolean=false,attack:Boolean=false):Double {
         var n=(mon.stages[key]?:0).coerceIn(-6,6)
@@ -62,10 +63,11 @@ class NativeEffects(val actors:Map<String,PokemonBridge.Actor>,seed:Long):SpireE
         if(a=="soundproof"&&spec(move).obj("flags")?.number("sound")==1)return 0 to 0
         if(a=="levitate"&&move.type=="ground"||a=="flashfire"&&move.type=="fire"||a=="waterabsorb"&&move.type=="water")return 0 to 0
         val original=MoveCompatibility.multiplier(move.type,target.types)
-        val mul=if(original==0.0&&source.uid.startsWith("player:"))0.5 else original
+        val mul=original
         return referenceDamage(source,target,move,85,multiplier=mul) to referenceDamage(source,target,move,100,multiplier=mul)
     }
     override fun accuracy(source:SpireCombatant,target:SpireCombatant,move:SpireMove):Int {
+        if(move.trainer)return 100
         val a=spec(move).get("accuracy")
         if(a.isJsonPrimitive&&a.asJsonPrimitive.isBoolean)return 100
         val keen=ability(source)=="keeneye"
@@ -75,6 +77,7 @@ class NativeEffects(val actors:Map<String,PokemonBridge.Actor>,seed:Long):SpireE
         return floor(move.accuracy*mult*(if(ability(source)=="compoundeyes")1.3 else 1.0)).toInt().coerceIn(0,100)
     }
     override fun canHit(source:SpireCombatant,target:SpireCombatant,move:SpireMove,battle:SpireBattle):Boolean {
+        if(move.trainer)return true
         if(move.id=="thunderwave"&&"ground" in target.types)return false
         val flags=spec(move).obj("flags")
         if(flags?.number("powder")==1&&"grass" in target.types)return false
@@ -87,6 +90,7 @@ class NativeEffects(val actors:Map<String,PokemonBridge.Actor>,seed:Long):SpireE
         return true
     }
     override fun beforeAction(source:SpireCombatant,move:SpireMove,battle:SpireBattle):Boolean {
+        if(move.trainer)return source.alive
         spreadActive=move.targetAll&&(if(source.uid.startsWith("player:"))battle.enemies.count{it.alive}>1 else battle.players.count{it.active.alive}>1)
         pendingSelf.remove(source.uid)
         if(source.statuses.remove("flinch")!=null&&ability(source)!="innerfocus")return false
@@ -123,6 +127,7 @@ class NativeEffects(val actors:Map<String,PokemonBridge.Actor>,seed:Long):SpireE
         if(includeSelf)o.obj("self")?.let{apply(source,source,it,battle)}
     }
     override fun hit(source:SpireCombatant,target:SpireCombatant,move:SpireMove,damage:Int,battle:SpireBattle){
+        if(move.trainer)return
         val m=spec(move);apply(source,target,m,battle,false)
         if(m.obj("self")!=null&&!(ability(source)=="sheerforce"&&m.array("secondaries")?.size()?.let{it>0}==true))pendingSelf.add(source.uid)
         if(ability(source)!="sheerforce")m.array("secondaries")?.forEach{v->val o=v.asJsonObject;if(random.nextInt(100)<o.number("chance",100))apply(source,target,o,battle)}
@@ -130,6 +135,7 @@ class NativeEffects(val actors:Map<String,PokemonBridge.Actor>,seed:Long):SpireE
         if(damage>0&&drain>0)source.heal((damage*drain).roundToInt().coerceAtLeast(1))
     }
     override fun resolved(source:SpireCombatant,move:SpireMove,totalDamage:Int,battle:SpireBattle){
+        if(move.trainer)return
         if(pendingSelf.remove(source.uid))spec(move).obj("self")?.let{apply(source,source,it,battle)}
         val recoil=MoveCompatibility.fraction(spec(move),"recoil")
         if(totalDamage>0&&recoil>0&&ability(source)!="rockhead")source.hp=(source.hp-(totalDamage*recoil).roundToInt().coerceAtLeast(1)).coerceAtLeast(0)

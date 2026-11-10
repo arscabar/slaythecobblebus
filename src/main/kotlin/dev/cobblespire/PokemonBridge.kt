@@ -43,7 +43,7 @@ class PokemonBridge(private val catalogue:PokemonCatalogue){
         require(reason(entry)==null){reason(entry)?:"Unsupported"};require(level in 1..10)
         val mon=PokemonProperties.parse("${entry.id} level=50 nature=hardy").create()
         stats.forEach{(_,stat)->mon.ivs[stat]=31;mon.evs[stat]=0}
-        val growth=growth(entry);val values=stats.associate{(key,stat)->key to mon.getStat(stat)+(level-1)*growth.getValue(key)}.toMutableMap()
+        val growth=growth(entry);val values=stats.associate{(key,stat)->key to mon.getStat(stat)}.toMutableMap()
         val random=Random(seed)
         val eligible=legalMoves(entry).filter{moveReason(it)==null&&(allowed==null||it.name in allowed)}
         require(eligible.any{MoveCompatibility.specs.getValue(it.name).number("basePower")>0}){"No verified attack"}
@@ -55,7 +55,9 @@ class PokemonBridge(private val catalogue:PokemonCatalogue){
         selected.addAll(status.filter{MoveCompatibility.specs.getValue(it.name).text("target")=="self"}.take(2));selected.addAll(status.filter{it !in selected}.take(2))
         val filler=(attacks+status).ifEmpty{eligible};var i=0
         while(selected.size<10){selected.add(filler[i++%filler.size])}
-        val deck=BattleDeck(selected.take(10).mapIndexed{index,m->MoveInstance(index.toLong()+1,MoveCompatibility.move(m.name))},Random(seed xor 0x32CAFEBABEL))
+        val cards=selected.take(if(enemyHp==null)9 else 10).mapIndexed{index,m->MoveInstance(index.toLong()+1,MoveCompatibility.move(m.name))}.toMutableList()
+        if(enemyHp==null)cards.add(MoveInstance(10,TrainerCards.encourage))
+        val deck=BattleDeck(cards,Random(seed xor 0x32CAFEBABEL))
         val body=SpireCombatant(uid,entry.id,mon.types.map{it.name.lowercase()}.toSet(),enemyHp?:values.getValue("hp"),deck)
         body.baseForm=entry.formName;body.form=entry.formName
         return Actor(body,known[entry.id]?.text("name_ko")?:entry.species.translatedName.string,requireNotNull(ability(entry)),values,growth,entry.aspects,eligible)

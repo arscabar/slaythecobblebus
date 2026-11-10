@@ -1,0 +1,21 @@
+{
+  "version": "0.3.0-dev",
+  "junitTests": 53,
+  "damageReferenceVectors": 640,
+  "nativeSessionChecks": 19,
+  "jarSha256": "98fe6495c46c61f9b9bd6407fe377d2deb38de348116d456a1fd5b1c95b685bd",
+  "visualClient": "Minecraft 1.21.1 Fabric, Cobblemon 1.7.3, isolated Loom client",
+  "visualChecks": [
+    "F10 start",
+    "5 card opening hand",
+    "left draw pile / right discard / upper right exhaust",
+    "end turn discard and fresh draw",
+    "Encourage draws 2 and exhausts",
+    "moving cards observed during draw",
+    "A->B->A fresh 5 instead of prior hand",
+    "separate draw pile inspection"
+  ],
+  "screenshot": "card-hand-ui.png",
+  "productionInstalled": false,
+  "evolutionNodesConnected": false
+}

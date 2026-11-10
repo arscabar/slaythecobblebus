@@ -13,7 +13,7 @@ import org.joml.Quaternionf
 object SpireWidgets {
     private val states=mutableMapOf<String,FloatingState>()
     fun name(c:JsonObject)=c.text("name").ifBlank{PokemonSpecies.getByIdentifier(ResourceLocation.parse(c.text("species")))?.translatedName?.string?:c.text("species")}
-    fun move(id:String)=Moves.getByName(id)?.displayName?.string?:id
+    fun move(id:String)=if(id==TrainerCards.ENCOURAGE)TrainerCards.name(id)else Moves.getByName(id)?.displayName?.string?:id
     fun portrait(g:GuiGraphics,c:JsonObject,x:Int,y:Int,scale:Float=12f){
         val s=PokemonSpecies.getByIdentifier(ResourceLocation.parse(c.text("species")))?:return
         val aspects=c.array("aspects")?.map{it.asString}?.toSet().orEmpty()

@@ -16,7 +16,7 @@ class SpireMod:ModInitializer {
         ServerLifecycleEvents.SERVER_STARTED.register{server->catalogue=PokemonCatalogue().also{it.reload();it.writeAudit()};trials=TrialService(server,requireNotNull(catalogue));trials!!.writeAudit();logger.info("CobbleSpire registry: {} forms",catalogue!!.entries.size)}
         ServerLifecycleEvents.SERVER_STOPPED.register{trials?.clear();trials=null;catalogue=null}
         ServerPlayNetworking.registerGlobalReceiver(SpirePayload.TYPE){payload,ctx->ctx.server().execute{
-            runCatching {require(payload.json.length<=8192){"요청이 너무 큽니다."};val j=JsonParser.parseString(payload.json).asJsonObject
+            runCatching {require(payload.json.length<=8192){"요청이 너무 큽니다."};val j=JsonParser.parseString(payload.json).asJsonObject;require(j.number("protocol")==3){"서버와 클라이언트의 CobbleSpire 버전을 맞춰주세요."}
                 requireNotNull(trials).handle(ctx.player(),j)
             }.onFailure{send(ctx.player(),com.google.gson.JsonObject().apply{addProperty("kind","error");addProperty("message",it.message?:"요청을 처리하지 못했습니다.")})}
         }}
@@ -31,6 +31,6 @@ class SpireMod:ModInitializer {
         val logger=LoggerFactory.getLogger("cobblespire");val gson=GsonBuilder().setPrettyPrinting().create()
         var catalogue:PokemonCatalogue?=null
         var trials:TrialService?=null
-        fun send(player:ServerPlayer,data:com.google.gson.JsonObject){if(ServerPlayNetworking.canSend(player,SpirePayload.TYPE))ServerPlayNetworking.send(player,SpirePayload(data.toString()))}
+        fun send(player:ServerPlayer,data:com.google.gson.JsonObject){data.addProperty("protocol",3);if(ServerPlayNetworking.canSend(player,SpirePayload.TYPE))ServerPlayNetworking.send(player,SpirePayload(data.toString()))}
     }
 }

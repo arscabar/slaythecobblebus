@@ -1,0 +1,32 @@
+{
+  "version": "4.2-user-card-rules",
+  "protocol": 3,
+  "combat": {
+    "type_immunity_multiplier": 0.0,
+    "reference_level": 50,
+    "iv": 31,
+    "ev": 0,
+    "automatic_stat_growth": false
+  },
+  "cards": {
+    "base_draw": 5,
+    "hand_limit": 10,
+    "instant_replacement": false,
+    "end_turn_discard": true,
+    "per_pokemon_decks": true,
+    "switch_discard_all": true,
+    "switch_draw": 5,
+    "extra_draw_effects": true,
+    "retain_on_turn_end": true,
+    "retain_on_switch": false
+  },
+  "evolution": {
+    "automatic_level_evolution": false,
+    "unlock_sources": [
+      "SERVER_EVENT",
+      "BADGE"
+    ],
+    "native_branch_validation": true,
+    "normal_battle_rewards_grant_evolution": false
+  }
+}

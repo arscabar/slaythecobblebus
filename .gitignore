@@ -40,3 +40,6 @@ crash-reports/
 *.zip
 .DS_Store
 Thumbs.db
+
+# Isolated Loom UI development instance
+**/run-ui/

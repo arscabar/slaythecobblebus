@@ -2,7 +2,7 @@ plugins {
     id 'fabric-loom' version '1.11.8'
     id 'org.jetbrains.kotlin.jvm' version '2.2.20'
 }
-version = '0.2.0-dev'
+version = '0.3.0-dev'
 group = 'dev.cobblespire'
 base { archivesName = 'cobblespire' }
 repositories { mavenCentral(); maven { url = 'https://api.modrinth.com/maven' } }
@@ -26,3 +26,6 @@ processResources { inputs.property 'version', project.version; filesMatching('fa
 tasks.withType(Jar).configureEach { preserveFileTimestamps = false; reproducibleFileOrder = true }
 
 processResources { from("design/data") { include "*.json"; into "assets/cobblespire/design" } }
+
+loom { runs { client { runDir 'run-ui' } } }
+tasks.named('runClient', JavaExec) { minHeapSize = '512m'; maxHeapSize = '3G' }

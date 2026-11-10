@@ -5,26 +5,8 @@ import kotlin.random.Random
 import kotlin.math.floor
 
 /** Pure server-side rules; no real-world Pokemon/store/inventory objects are modified. */
-data class SpireMove(val id:String,val cost:Int,val power:Int=0,val type:String="normal",val accuracy:Int=100,val status:String?=null,val duration:Int=0,val healFraction:Double=0.0,val recoilFraction:Double=0.0,val exhaust:Boolean=false,val selfTarget:Boolean=false,val targetAll:Boolean=false)
-data class MoveInstance(val uid:Long,val move:SpireMove,var upgraded:Boolean=false)
-class BattleDeck(instances:List<MoveInstance>,private val random:Random,slotCount:Int=4){
-    val original=instances.toList()
-    val draw=ArrayDeque(instances.shuffled(random))
-    val discard=mutableListOf<MoveInstance>()
-    val exhausted=mutableListOf<MoveInstance>()
-    val slots=MutableList<MoveInstance?>(slotCount){null}
-    init{slots.indices.forEach{refill(it)}}
-    private fun refill(index:Int){
-        if(draw.isEmpty()&&discard.isNotEmpty()){draw.addAll(discard.shuffled(random));discard.clear()}
-        slots[index]=draw.removeFirstOrNull()
-    }
-    fun consume(index:Int):MoveInstance{
-        val used=requireNotNull(slots.getOrNull(index)){"빈 기술 슬롯입니다."}
-        slots[index]=null
-        if(used.move.exhaust)exhausted.add(used)else discard.add(used)
-        refill(index);return used
-    }
-}
+data class SpireMove(val id:String,val cost:Int,val power:Int=0,val type:String="normal",val accuracy:Int=100,val status:String?=null,val duration:Int=0,val healFraction:Double=0.0,val recoilFraction:Double=0.0,val exhaust:Boolean=false,val selfTarget:Boolean=false,val targetAll:Boolean=false,val drawCards:Int=0,val trainer:Boolean=false)
+data class MoveInstance(val uid:Long,val move:SpireMove,var upgraded:Boolean=false,var retain:Boolean=false)
 data class TimedAffliction(val id:String,var remaining:Int,val appliedRound:Int)
 class SpireCombatant(val uid:String,val species:String,val types:Set<String>,maxHp:Int,var deck:BattleDeck?=null){
     var maxHp=maxHp;private set
@@ -58,6 +40,7 @@ fun interface SpireBattleHook{fun dispatch(event:SpireBattleEvent,battle:SpireBa
 
 interface SpireEffects {
     fun cost(card:MoveInstance)=card.move.cost
+    fun drawCount(card:MoveInstance)=card.move.drawCards
     fun healing(source:SpireCombatant,move:SpireMove)=floor(source.maxHp*move.healFraction).toInt()
     fun validate(source:SpireCombatant,card:MoveInstance){}
     fun beforeAction(source:SpireCombatant,move:SpireMove,battle:SpireBattle)=true
@@ -90,31 +73,32 @@ class SpireBattle(val players:List<SpireBattlePlayer>,val enemies:List<SpireComb
         require(token==revision){"화면이 갱신되었습니다."};require(phase==SpireBattlePhase.PLAYER){"플레이어 차례가 아닙니다."}
     }
     private fun commit(id:UUID,request:String){requests.add(id to request);while(requests.size>512)requests.remove(requests.first());revision++}
-    fun start(){event("BATTLE_START");event("ROUND_START")}
+    fun start(){event("BATTLE_START");players.filter{it.active.alive}.forEach{it.active.deck?.beginTurn(round)};event("ROUND_START")}
     fun switch(id:UUID,index:Int,request:String,token:Int){
         validateRequest(id,request,token);val p=participant(id)
         require(!p.ended);require(index in p.party.indices&&index!=p.activeIndex&&p.party[index].alive){"교체할 생존 포켓몬을 선택하세요."}
         val forced=p.forcedSwitch
         require(forced||!p.normalSwitchUsed&&p.energy>=1){"일반 교체는 라운드당 1회, 에너지 1이 필요합니다."}
         if(!forced){p.energy--;p.normalSwitchUsed=true}
-        val out=p.active;out.leaveActive();p.activeIndex=index;effects.switched(out,p.active,this);commit(id,request);event(if(forced)"FORCED_SWITCH" else "NORMAL_SWITCH",id.toString(),p.active.uid)
+        val out=p.active;out.deck?.discardHand(round,"SWITCH_OUT");out.leaveActive();p.activeIndex=index;effects.switched(out,p.active,this);p.active.deck?.switchIn(round);commit(id,request);event(if(forced)"FORCED_SWITCH" else "NORMAL_SWITCH",id.toString(),p.active.uid)
     }
     fun useMove(id:UUID,slot:Int,instance:Long,target:Int,request:String,token:Int){
         validateRequest(id,request,token);val p=participant(id);require(!p.ended&&p.active.alive){"생존한 포켓몬으로 교체하세요."}
-        require("sleep" !in p.active.statuses){"수면 중에는 교체하거나 차례를 종료할 수 있습니다."}
-        val deck=requireNotNull(p.active.deck);val card=requireNotNull(deck.slots.getOrNull(slot));require(card.uid==instance){"기술 슬롯이 변경되었습니다."}
+        val deck=requireNotNull(p.active.deck);val card=requireNotNull(deck.hand.getOrNull(slot));require(card.uid==instance){"손패가 변경되었습니다."}
+        require(card.move.trainer||"sleep" !in p.active.statuses){"수면 중에는 지원 카드·교체·차례 종료를 사용할 수 있습니다."}
         val move=card.move;val cost=effects.cost(card);effects.validate(p.active,card)
         require(cost>=0&&p.energy>=cost){"에너지가 부족합니다."}
         require(target in enemies.indices&&enemies[target].alive){"살아 있는 적을 선택하세요."}
-        p.energy-=cost;commit(id,request);event("BEFORE_MOVE_COST",p.active.uid,amount=cost)
+        p.energy-=cost;deck.take(slot,round);commit(id,request);event("BEFORE_MOVE_COST",p.active.uid,amount=cost)
         val self=p.active;val foe=enemies[target]
-        val failed=("paralysis" in self.statuses&&hitRandom.nextInt(100)<25)||!effects.beforeAction(self,move,this)
+        val failed=(!move.trainer&&"paralysis" in self.statuses&&hitRandom.nextInt(100)<25)||!effects.beforeAction(self,move,this)
         val targets=if(move.selfTarget)listOf(self)else if(move.targetAll)enemies.filter{it.alive}else listOf(foe)
         var inflicted=0
         for(t in targets){
             val hit=!failed&&effects.canHit(self,t,move,this)&&hitRandom.nextInt(100)<effects.accuracy(self,t,move).coerceIn(0,100)
             if(hit){
-                val base=effectiveness(move.type,t.types);val multiplier=if(base==0.0)0.5 else base
+                val multiplier=effectiveness(move.type,t.types)
+                if(move.power>0&&multiplier==0.0){event("MOVE_MISS",self.uid,t.uid);continue}
                 val actual=if(move.power>0){val raw=effects.damage(self,t,move,card.upgraded,multiplier);val n=if(raw<=0)0 else floor(raw).toInt().coerceAtLeast(1);n.coerceAtMost(t.hp)}else 0
                 t.hp-=actual;inflicted+=actual;event("MOVE_HIT",self.uid,t.uid,actual)
                 if(move.status!=null&&t.alive)t.afflict(move.status,round,move.duration)
@@ -124,11 +108,14 @@ class SpireBattle(val players:List<SpireBattlePlayer>,val enemies:List<SpireComb
         if(inflicted>0&&move.recoilFraction>0)self.hp=(self.hp-floor(inflicted*move.recoilFraction).toInt().coerceAtLeast(1)).coerceAtLeast(0)
         if(!failed&&move.healFraction>0)self.heal(effects.healing(self,move))
         effects.resolved(self,move,inflicted,this)
-        event("MOVE_RESOLVED",self.uid,foe.uid);deck.consume(slot);event("SLOT_REPLACED",self.uid)
+        event("MOVE_RESOLVED",self.uid,foe.uid)
+        if(!failed&&effects.drawCount(card)>0){val n=deck.drawCards(effects.drawCount(card),round,"EFFECT").size;event("CARDS_DRAWN",self.uid,amount=n)}
+        deck.resolve(card,round);event("CARD_PLAYED",self.uid,amount=cost)
         decideResult()
     }
     fun endTurn(id:UUID,request:String,token:Int){
         validateRequest(id,request,token);val p=participant(id);require(!p.ended);require(!p.forcedSwitch){"먼저 생존한 포켓몬으로 교체하세요."}
+        p.party.forEach{it.deck?.finishTurn(round)}
         p.ended=true;commit(id,request)
         if(players.filter{it.alive}.all{it.ended})enemyPhase()
     }
@@ -171,7 +158,7 @@ class SpireBattle(val players:List<SpireBattlePlayer>,val enemies:List<SpireComb
         }
         event("ROUND_END");if(decideResult())return
         round++;phase=SpireBattlePhase.PLAYER
-        players.forEach{it.ended=false;it.normalSwitchUsed=false;it.energy=3}
+        players.forEach{it.ended=false;it.normalSwitchUsed=false;it.energy=3;if(it.active.alive)it.active.deck?.beginTurn(round)}
         revision++;event("ROUND_START")
     }
     private fun decideResult():Boolean {
@@ -186,11 +173,6 @@ class SpireBattle(val players:List<SpireBattlePlayer>,val enemies:List<SpireComb
         return false
     }
     fun rest(player:UUID){require(phase==SpireBattlePhase.VICTORY);participant(player).party.filter{it.alive}.forEach{it.heal(floor(it.maxHp*0.3).toInt())}}
-}
-object SpireProgression {
-    val thresholds=listOf(0,4,8,13,19,25,32,40,46,52)
-    fun level(points:Int)=thresholds.count{points>=it}.coerceIn(1,10)
-    fun enterAct(points:Int,act:Int)=maxOf(points,when(act){2->19;3->40;else->0})
 }
 
 object SpirePartyRules {

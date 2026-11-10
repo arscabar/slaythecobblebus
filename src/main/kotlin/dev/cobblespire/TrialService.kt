@@ -18,6 +18,7 @@ class TrialService(private val server:MinecraftServer,val catalogue:PokemonCatal
         lateinit var battle:SpireBattle;lateinit var effects:NativeEffects;lateinit var ai:IntentRules
         var actors=emptyMap<String,PokemonBridge.Actor>();var profiles=emptyMap<String,JsonObject>();var choices=emptyMap<String,IntentRules.Choice>()
         val log=ArrayDeque<String>()
+        val evolution=EvolutionAccess()
         var logFailureReported=false
     }
     private val sessions=mutableMapOf<UUID,Session>()
@@ -41,7 +42,7 @@ class TrialService(private val server:MinecraftServer,val catalogue:PokemonCatal
             "move","switch","end","next"->{
                 val s=requireSession(p,j);val b=s.battle
                 when(action){
-                    "move"->b.useMove(p.uuid,j.number("slot",-1),j.get("instance")?.asLong?:-1,j.number("target",-1),j.text("request"),j.number("revision",-1))
+                    "move"->b.useMove(p.uuid,j.number("handIndex",-1),j.get("instance")?.asLong?:-1,j.number("target",-1),j.text("request"),j.number("revision",-1))
                     "switch"->{b.switch(p.uuid,j.number("index",-1),j.text("request"),j.number("revision",-1));s.activeIndex=b.players.single().activeIndex}
                     "end"->b.endTurn(p.uuid,j.text("request"),j.number("revision",-1))
                     "next"->{require(j.number("revision",-1)==b.revision&&b.phase==SpireBattlePhase.VICTORY);require(BattleRegistry.getBattleByParticipatingPlayer(p)==null){"일반 전투가 끝난 뒤 진행하세요."};begin(s)}
@@ -81,7 +82,7 @@ class TrialService(private val server:MinecraftServer,val catalogue:PokemonCatal
         }
         require(selected.size==3){"타입이 겹치지 않는 지원 파트너가 부족합니다."}
         val party=selected.mapIndexed{i,e->bridge.create(e,"player:$i",seed+i)}
-        val s=Session(p.uuid,UUID.randomUUID(),seed,party);begin(s);sessions[p.uuid]=s;send(p,s,true)
+        val s=Session(p.uuid,UUID.randomUUID(),seed,party);begin(s);sessions[p.uuid]=s;send(p,s,true,true)
     }
     private fun begin(s:Session){
         s.battleNumber++;val encounter=Definitions.data.getAsJsonArray("encounters").map{it.asJsonObject}.first{it.text("encounter_id")=="ACT1-R0${(s.battleNumber-1)%3+1}"}
@@ -101,12 +102,11 @@ class TrialService(private val server:MinecraftServer,val catalogue:PokemonCatal
             "BATTLE_START"->{s.effects.enter(s.battle.players.single().active,s.battle.enemies);s.battle.enemies.forEach{s.effects.enter(it,s.battle.players.map{a->a.active})}}
             "ROUND_START"->{s.choices=s.battle.enemies.filter{it.alive}.associate{actor->actor.uid to s.ai.choose(actor,s.profiles.getValue(actor.uid),s.battle,s.actors.getValue(actor.uid).nativeMoves.map{it.name}.toSet())};s.battle.intents=s.battle.enemies.mapIndexedNotNull{i,a->s.choices[a.uid]?.let{EnemyIntent(i,it.move)}}}
             "ENEMY_MOVE_STARTED"->s.choices[e.actor]?.let{s.ai.used(it,s.battle.round)}
-            "PROGRESSION"->{val before=SpireProgression.level(s.points);s.points+=2;val delta=SpireProgression.level(s.points)-before
-                if(delta>0)s.party.forEach{a->a.stats.keys.forEach{k->val n=a.growth.getValue(k)*delta;a.stats[k]=a.stats.getValue(k)+n;if(k=="hp")a.body.growHp(n)}}}
+            "PROGRESSION"->{s.points+=2}
         }
         if(e.name in setOf("MOVE_HIT","MOVE_MISS","AFTER_DAMAGE_TAKEN","NORMAL_SWITCH","FORCED_SWITCH","BATTLE_WON","BATTLE_LOST")){
             val actor=s.actors[e.actor]?.name.orEmpty();val target=s.actors[e.target]?.name.orEmpty()
-            val line=when(e.name){"MOVE_HIT"->if(e.amount>0)"$actor → $target ${e.amount} 피해" else "$actor 기술 효과 처리";"AFTER_DAMAGE_TAKEN"->if(e.amount>0)"$target ${e.amount} 피해" else "$actor 기술 효과 처리";"MOVE_MISS"->"$actor 기술 실패·무효";"BATTLE_WON"->"승리 · 훈련점수 +2";"BATTLE_LOST"->"모든 포켓몬 기절 · 패배";else->"$target 출전"}
+            val line=when(e.name){"MOVE_HIT"->if(e.amount>0)"$actor → $target ${e.amount} 피해" else "$actor 기술 효과 처리";"AFTER_DAMAGE_TAKEN"->if(e.amount>0)"$target ${e.amount} 피해" else "$actor 기술 효과 처리";"MOVE_MISS"->"$actor 기술 실패·무효";"BATTLE_WON"->"승리 · 진행점수 +2 (능력치 고정)";"BATTLE_LOST"->"모든 포켓몬 기절 · 패배";else->"$target 출전"}
             s.log.addLast(line);while(s.log.size>12)s.log.removeFirst()
         }
         runCatching{
@@ -120,15 +120,30 @@ class TrialService(private val server:MinecraftServer,val catalogue:PokemonCatal
         add("stats",JsonObject().also{v->a.stats.forEach{(k,n)->v.addProperty(k,n)}});add("stages",JsonObject().also{v->a.body.stages.forEach{(k,n)->v.addProperty(k,n)}})
         add("statuses",JsonArray().also{v->a.body.statuses.values.forEach{v.add(it.id+if(it.remaining>0)" ${it.remaining}" else "")}})
     }
+    private fun cardInfo(m:MoveInstance,fx:NativeEffects)=JsonObject().apply{
+        addProperty("instance",m.uid);addProperty("move",m.move.id);addProperty("cost",fx.cost(m));addProperty("type",m.move.type)
+        addProperty("trainer",m.move.trainer);addProperty("exhaust",m.move.exhaust);addProperty("retain",m.retain);addProperty("upgraded",m.upgraded)
+        addProperty("draw",fx.drawCount(m));addProperty("accuracy",m.move.accuracy)
+    }
     fun snapshot(id:UUID):JsonObject?=sessions[id]?.let{buildSnapshot(it,false)}
-    private fun send(p:ServerPlayer,s:Session,open:Boolean){SpireMod.send(p,buildSnapshot(s,open))}
+    private fun send(p:ServerPlayer,s:Session,open:Boolean,fresh:Boolean=false){SpireMod.send(p,buildSnapshot(s,open).apply{addProperty("fresh",fresh)})}
     private fun buildSnapshot(s:Session,open:Boolean):JsonObject{
         val b=s.battle;val player=b.players.single();return JsonObject().apply{
             addProperty("kind","battle");addProperty("open",open);addProperty("session",s.id.toString());addProperty("revision",b.revision);addProperty("round",b.round);addProperty("phase",b.phase.name)
-            addProperty("level",SpireProgression.level(s.points));addProperty("points",s.points);addProperty("energy",player.energy);addProperty("active",player.activeIndex);addProperty("forced",player.forcedSwitch);addProperty("switchUsed",player.normalSwitchUsed);addProperty("battleNumber",s.battleNumber)
+            addProperty("progress",s.points);addProperty("points",s.points);addProperty("energy",player.energy);addProperty("active",player.activeIndex);addProperty("forced",player.forcedSwitch);addProperty("switchUsed",player.normalSwitchUsed);addProperty("battleNumber",s.battleNumber)
             add("party",JsonArray().also{a->s.party.forEach{a.add(card(it))}})
             add("enemies",JsonArray().also{a->b.enemies.forEach{enemy->val c=card(s.actors.getValue(enemy.uid));s.choices[enemy.uid]?.let{choice->c.addProperty("intent",choice.move.id);val damage=s.effects.estimate(enemy,player.active,choice.move);c.addProperty("minDamage",damage.first);c.addProperty("maxDamage",damage.second)};a.add(c)}})
-            add("slots",JsonArray().also{a->player.active.deck!!.slots.forEach{instance->a.add(instance?.let{m->JsonObject().apply{addProperty("instance",m.uid);addProperty("move",m.move.id);addProperty("cost",s.effects.cost(m));addProperty("upgraded",m.upgraded);addProperty("type",m.move.type);addProperty("accuracy",m.move.accuracy)}})}})
+            addProperty("evolutionCredits",s.evolution.available().size);add("badges",JsonArray().also{a->s.evolution.earnedBadges().forEach{a.add(it)}})
+            val deck=player.active.deck!!
+            addProperty("deckOwner",player.active.uid);addProperty("handLimit",deck.handLimit);addProperty("motionSequence",deck.sequence)
+            add("hand",JsonArray().also{a->deck.hand.forEach{a.add(cardInfo(it,s.effects))}})
+            add("piles",JsonObject().apply{
+                add("draw",JsonArray().also{a->deck.draw.sortedWith(compareBy<MoveInstance>{it.move.id}.thenBy{it.uid}).forEach{a.add(cardInfo(it,s.effects))}})
+                add("discard",JsonArray().also{a->deck.discard.forEach{a.add(cardInfo(it,s.effects))}})
+                add("exhaust",JsonArray().also{a->deck.exhausted.forEach{a.add(cardInfo(it,s.effects))}})
+            })
+            add("motions",JsonArray().also{a->deck.transfers.forEach{t->a.add(JsonObject().apply{addProperty("seq",t.sequence);add("card",cardInfo(t.card,s.effects));addProperty("from",t.from);addProperty("to",t.to);addProperty("index",t.index);addProperty("round",t.round);addProperty("cause",t.cause)})}})
+
             add("log",JsonArray().also{a->s.log.takeLast(4).forEach{a.add(it)}})
         }
     }

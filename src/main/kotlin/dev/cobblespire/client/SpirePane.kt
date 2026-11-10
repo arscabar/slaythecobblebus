@@ -6,15 +6,17 @@ import net.minecraft.client.gui.components.Button
 import net.minecraft.network.chat.Component
 
 abstract class SpirePane(protected var data:JsonObject):Screen(Component.literal("CobbleSpire")){
-    protected val pw get()=minOf(580,width-16)
-    protected val ph get()=minOf(320,height-16)
+    protected open val maximumWidth=580
+    protected open val maximumHeight=320
+    protected val pw get()=minOf(maximumWidth,width-16)
+    protected val ph get()=minOf(maximumHeight,height-16)
     protected val px get()=(width-pw)/2
     protected val py get()=(height-ph)/2
     private var error=""
     protected fun button(x:Int,y:Int,w:Int,h:Int,label:String,enabled:Boolean=true,click:()->Unit)=addRenderableWidget(Button.builder(Component.literal(label)){click()}.bounds(x,y,w,h).build().also{it.active=enabled})
     protected fun text(g:GuiGraphics,s:String,x:Int,y:Int,c:Int=0xE8EBE7){g.drawString(font,s,x,y,c)}
     protected fun short(s:String,w:Int)=if(font.width(s)<=w)s else font.plainSubstrByWidth(s,(w-8).coerceAtLeast(0))+"…"
-    fun showError(s:String){error=s}
+    open fun showError(s:String){error=s}
     open fun accept(value:JsonObject){data=value;error="";rebuildWidgets()}
     override fun renderBlurredBackground(delta:Float){}
     override fun isPauseScreen()=false

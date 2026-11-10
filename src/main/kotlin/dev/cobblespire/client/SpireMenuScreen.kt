@@ -17,7 +17,7 @@ class SpireMenuScreen(data:JsonObject):SpirePane(data){
         choices().forEachIndexed{i,c->
             val label=SpireWidgets.name(c);val supported=c.text("reason").isBlank()
             button(px+12+(i%2)*(w+6),py+72+(i/2)*row,w,row-4,short(label,w-12),supported){SpireClient.send("start"){addProperty("entry",c.text("key"))}}
-                .tooltip=Tooltip.create(Component.literal(if(supported)"특성: "+Component.translatable("cobblemon.ability.${c.text("ability")}").string+"\n파트너 2마리는 모든 타입이 겹치지 않게 자동 편성됩니다."+(if(c.get("design")?.asBoolean!=true)"\n추가 등록 종: 공용 성장(HP +5, 나머지 +2/Lv) · 균형 미검증"else "") else c.text("reason")))
+                .tooltip=Tooltip.create(Component.literal(if(supported)"특성: "+Component.translatable("cobblemon.ability.${c.text("ability")}").string+"\n파트너 2마리는 모든 타입이 겹치지 않게 자동 편성됩니다."+(if(c.get("design")?.asBoolean!=true)"\n추가 등록 종: 기준 능력치 고정 · 균형 미검증"else "") else c.text("reason")))
         }
         button(px+12,py+ph-28,56,20,"이전",data.number("page")>0){page(data.number("page")-1)}
         button(px+73,py+ph-28,56,20,"다음",(data.number("page")+1)*8<data.number("total")){page(data.number("page")+1)}

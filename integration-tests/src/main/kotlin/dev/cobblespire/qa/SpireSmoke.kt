@@ -60,27 +60,27 @@ class SpireSmoke:ModInitializer {
         val native=service.bridge.create(char,"check:charizard",1)
         val grown=service.bridge.create(char,"check:grown",1,5)
         check("native-lv50-IV31-EV0-neutral-charizard-hp",native.body.maxHp==153,"HP ${native.body.maxHp}")
-        check("character-growth-without-double-leveling",grown.body.maxHp==177,"Lv5 HP ${grown.body.maxHp}")
+        check("progress-does-not-increase-combat-stats",grown.body.maxHp==153,"Progress5 HP ${grown.body.maxHp}")
         val extra=catalogue.entries.first{entry->entry.formName==entry.species.standardForm.name&&Definitions.characters.none{it.text("species_id")==entry.species.resourceIdentifier.path}&&service.bridge.reason(entry)==null}
         val extraMon=service.bridge.create(extra,"check:addon",2)
         check("registry-expansion-beyond-fixed-50",extraMon.body.species==extra.id,extra.id)
         action(service,p,"start"){addProperty("entry",char.key)}
         var state=requireNotNull(service.snapshot(p.uuid))
         check("actual-party-has-three-disjoint-type-pools",state.getAsJsonArray("party").size()==3&&SpirePartyRules.disjoint(state.getAsJsonArray("party").map{it.asJsonObject.getAsJsonArray("types").map{t->t.asString}.toSet()}))
-        check("actual-ui-snapshot-four-slots-three-energy-visible-intent",state.getAsJsonArray("slots").size()==4&&state.number("energy")==3&&state.getAsJsonArray("enemies")[0].asJsonObject.text("intent").isNotBlank())
+        check("actual-ui-snapshot-five-card-hand-three-energy-visible-intent",state.getAsJsonArray("hand").size()==5&&state.number("energy")==3&&state.getAsJsonArray("enemies")[0].asJsonObject.text("intent").isNotBlank())
         @Suppress("UNCHECKED_CAST") val sessions=field(service,"sessions") as MutableMap<UUID,Any>
         val session=sessions.getValue(p.uuid);val battle=field(session,"battle") as SpireBattle
         val self=battle.players.single().active
         check("starter-learnset-includes-test-flamethrower",native.nativeMoves.any{it.name=="flamethrower"})
-        self.deck!!.slots[0]=MoveInstance(999,MoveCompatibility.move("flamethrower"));battle.enemies.single().hp=1
-        val packet=JsonObject().apply{addProperty("action","move");addProperty("session",state.text("session"));addProperty("battleNumber",state.number("battleNumber"));addProperty("revision",state.number("revision"));addProperty("request","same-test-request");addProperty("slot",0);addProperty("instance",999);addProperty("target",0)}
+        self.deck!!.hand[0]=MoveInstance(999,MoveCompatibility.move("flamethrower"));battle.enemies.single().hp=1
+        val packet=JsonObject().apply{addProperty("action","move");addProperty("session",state.text("session"));addProperty("battleNumber",state.number("battleNumber"));addProperty("revision",state.number("revision"));addProperty("request","same-test-request");addProperty("handIndex",0);addProperty("instance",999);addProperty("target",0)}
         @Suppress("UNCHECKED_CAST") val throttle=field(service,"lastAction") as MutableMap<UUID,Int>;throttle.remove(p.uuid)
         service.handle(p,packet);state=requireNotNull(service.snapshot(p.uuid))
         check("native-move-resolves-to-real-server-victory",state.text("phase")=="VICTORY"&&state.number("points")==2&&state.number("energy")==1)
         val before=state.toString();throttle.remove(p.uuid);val duplicate=runCatching{service.handle(p,packet)}.isFailure
         check("duplicate-move-cannot-charge-or-reward-twice",duplicate&&service.snapshot(p.uuid).toString()==before)
         action(service,p,"next");state=requireNotNull(service.snapshot(p.uuid))
-        check("next-battle-restores-slots-and-new-intents",state.number("battleNumber")==2&&state.number("energy")==3&&state.text("phase")=="PLAYER")
+        check("next-battle-deals-new-hand-and-new-intents",state.number("battleNumber")==2&&state.number("energy")==3&&state.text("phase")=="PLAYER")
         val bench=state.getAsJsonArray("party").mapIndexedNotNull{i,c->c.asJsonObject.takeIf{i!=state.number("active")}}
         check("enemy-entry-ability-does-not-affect-benched-Pokemon",bench.all{!it.getAsJsonObject("stages").has("atk")})
         val newState=state.toString();throttle.remove(p.uuid);val stale=runCatching{service.handle(p,packet)}.isFailure
