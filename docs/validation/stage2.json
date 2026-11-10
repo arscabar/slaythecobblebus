@@ -1,0 +1,74 @@
+{
+  "stage": "solo-trial-ui-and-native-metadata-bridge",
+  "version": "0.2.0-dev",
+  "minecraft": "1.21.1",
+  "cobblemon": "1.7.3+1.21.1",
+  "junitTests": 37,
+  "damageReferenceVectors": 640,
+  "nativeSessionChecks": 19,
+  "registeredSpecies": 1025,
+  "registeredForms": 1481,
+  "metadataSupportedMoves": 303,
+  "activeDefinedCharacters": 41,
+  "excludedCharacters": [
+    {
+      "species": "sharpedo",
+      "supported": false,
+      "reason": "이 폼의 특성 효과 검증 전",
+      "ability": ""
+    },
+    {
+      "species": "flapple",
+      "supported": false,
+      "reason": "이 폼의 특성 효과 검증 전",
+      "ability": ""
+    },
+    {
+      "species": "manectric",
+      "supported": false,
+      "reason": "이 폼의 특성 효과 검증 전",
+      "ability": ""
+    },
+    {
+      "species": "ampharos",
+      "supported": false,
+      "reason": "이 폼의 특성 효과 검증 전",
+      "ability": ""
+    },
+    {
+      "species": "gallade",
+      "supported": false,
+      "reason": "이 폼의 특성 효과 검증 전",
+      "ability": ""
+    },
+    {
+      "species": "gengar",
+      "supported": false,
+      "reason": "이 폼의 특성 효과 검증 전",
+      "ability": ""
+    },
+    {
+      "species": "garbodor",
+      "supported": false,
+      "reason": "이 폼의 특성 효과 검증 전",
+      "ability": ""
+    },
+    {
+      "species": "garchomp",
+      "supported": false,
+      "reason": "이 폼의 특성 효과 검증 전",
+      "ability": ""
+    },
+    {
+      "species": "gardevoir",
+      "supported": false,
+      "reason": "이 폼의 특성 효과 검증 전",
+      "ability": ""
+    }
+  ],
+  "jarSha256": "f0200e4cb776ba3e4c93dcb86a3bc9b16425cf833e8f34a07150ddfa84b28ece",
+  "coreLeagueInstalled": false,
+  "synergyInstalled": false,
+  "clientVisualTested": false,
+  "productionInstalled": false
+}

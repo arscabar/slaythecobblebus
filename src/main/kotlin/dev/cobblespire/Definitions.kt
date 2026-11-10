@@ -4,6 +4,7 @@ import com.google.gson.JsonParser
 
 object Definitions {
     val data:JsonObject by lazy { read("all_definitions_v4.json") }
+    fun speciesId(id:String)=if(':' in id)id else "cobblemon:$id"
     val characters get()=data.getAsJsonArray("characters").map{it.asJsonObject}
     val enemies get()=data.getAsJsonArray("enemy_actors").map{it.asJsonObject}
     val relics get()=data.getAsJsonArray("relics").map{it.asJsonObject}

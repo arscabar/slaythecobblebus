@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "cobblespire_qa",
+  "version": "0.1.0",
+  "name": "CobbleSpire QA (test only)",
+  "environment": "server",
+  "entrypoints": {
+    "main": [
+      "dev.cobblespire.qa.SpireSmoke"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.17.2",
+    "minecraft": "1.21.1",
+    "fabric-api": "*",
+    "fabric-language-kotlin": "*",
+    "cobblemon": "*",
+    "cobblespire": "*",
+    "carpet": "*"
+  }
+}

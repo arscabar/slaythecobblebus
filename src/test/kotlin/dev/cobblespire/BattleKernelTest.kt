@@ -14,7 +14,7 @@ class BattleKernelTest {
     @Test fun `A to B to A preserves independent deck order piles and slots`(){
         val a=mon("a");val b=mon("b");val run=battle(listOf(a,b));use(run);val before=deck(a.deck!!)
         run.switch(id,1,"switch",run.revision);end(run);run.switch(id,0,"return",run.revision)
-        assertEquals(before,deck(a.deck));assertEquals(2,run.players[0].energy)
+        assertEquals(before,deck(a.deck!!));assertEquals(2,run.players[0].energy)
     }
     @Test fun `normal switching costs one and is limited to once per round`(){
         val b=battle(listOf(mon("a"),mon("b")));b.switch(id,1,"one",b.revision)

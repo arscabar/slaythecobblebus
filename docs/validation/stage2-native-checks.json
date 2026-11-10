@@ -1,0 +1,97 @@
+[
+  {
+    "test": "independent-without-league-or-synergy",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "baseline-has-nonempty-real-party-PC-inventory",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "native-lv50-IV31-EV0-neutral-charizard-hp",
+    "passed": true,
+    "detail": "HP 153"
+  },
+  {
+    "test": "character-growth-without-double-leveling",
+    "passed": true,
+    "detail": "Lv5 HP 177"
+  },
+  {
+    "test": "registry-expansion-beyond-fixed-50",
+    "passed": true,
+    "detail": "cobblemon:abra"
+  },
+  {
+    "test": "actual-party-has-three-disjoint-type-pools",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "actual-ui-snapshot-four-slots-three-energy-visible-intent",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "starter-learnset-includes-test-flamethrower",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "native-move-resolves-to-real-server-victory",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "duplicate-move-cannot-charge-or-reward-twice",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "next-battle-restores-slots-and-new-intents",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "enemy-entry-ability-does-not-affect-benched-Pokemon",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "prior-battle-packet-cannot-affect-next-battle",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "enemy-phase-resolves-and-refreshes-round-energy-and-intents",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "actual-normal-switch-updates-active-party-and-charges-once",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "closing-and-reopening-does-not-replace-session",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "real-party-PC-and-inventory-preserved",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "explicit-quit-discards-memory-only-session",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "completed",
+    "passed": true,
+    "detail": ""
+  }
+]

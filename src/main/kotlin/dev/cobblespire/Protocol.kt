@@ -12,7 +12,7 @@ data class SpirePayload(val json: String) : CustomPacketPayload {
     companion object {
         val TYPE = CustomPacketPayload.Type<SpirePayload>(ResourceLocation.fromNamespaceAndPath("cobblespire", "message"))
         val CODEC: StreamCodec<RegistryFriendlyByteBuf, SpirePayload> = StreamCodec.of(
-            // Up to 24 six-member deck previews include portrait/form/move metadata.
+            // Bounded adventure snapshots; server action requests are further limited to 8 KiB.
             { buf, value -> buf.writeUtf(value.json, 128000) },
             { buf -> SpirePayload(buf.readUtf(128000)) }
         )

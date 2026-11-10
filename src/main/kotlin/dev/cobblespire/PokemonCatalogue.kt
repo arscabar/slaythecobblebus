@@ -26,9 +26,9 @@ class PokemonCatalogue {
             .distinctBy{it.key}.sortedWith(compareBy<Entry>{it.id}.thenBy{it.formName})
         require(entries.isNotEmpty()){"Pokemon registry has not been initialized"}
     }
-    fun find(id:String)=PokemonSpecies.getByIdentifier(ResourceLocation.parse(if(':' in id)id else "cobblemon:$id"))
+    fun find(id:String)=PokemonSpecies.getByIdentifier(ResourceLocation.parse(Definitions.speciesId(id)))
     fun page(query:String,page:Int):JsonObject {
-        val filtered=entries.filter{query.isBlank()||it.key.contains(query,true)||it.species.translatedName.string.contains(query,true)||Definitions.characters.any{d->d.text("species_id")==it.species.resourceIdentifier.path&&d.text("name_ko").contains(query,true)}}
+        val filtered=entries.filter{query.isBlank()||it.key.contains(query,true)||it.species.translatedName.string.contains(query,true)||Definitions.characters.any{d->Definitions.speciesId(d.text("species_id"))==it.id&&d.text("name_ko").contains(query,true)}}
         val p=page.coerceIn(0,((filtered.size-1)/12).coerceAtLeast(0))
         return JsonObject().apply{addProperty("kind","catalog");addProperty("query",query);addProperty("page",p);addProperty("total",filtered.size);addProperty("speciesCount",entries.map{it.id}.distinct().size)
             add("entries",JsonArray().also{a->filtered.drop(p*12).take(12).forEach{a.add(it.json())}})

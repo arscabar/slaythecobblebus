@@ -5,9 +5,10 @@ import kotlin.random.Random
 import kotlin.math.floor
 
 /** Pure server-side rules; no real-world Pokemon/store/inventory objects are modified. */
-data class SpireMove(val id:String,val cost:Int,val power:Int=0,val type:String="normal",val accuracy:Int=100,val status:String?=null,val duration:Int=0,val healFraction:Double=0.0,val recoilFraction:Double=0.0,val exhaust:Boolean=false)
+data class SpireMove(val id:String,val cost:Int,val power:Int=0,val type:String="normal",val accuracy:Int=100,val status:String?=null,val duration:Int=0,val healFraction:Double=0.0,val recoilFraction:Double=0.0,val exhaust:Boolean=false,val selfTarget:Boolean=false,val targetAll:Boolean=false)
 data class MoveInstance(val uid:Long,val move:SpireMove,var upgraded:Boolean=false)
 class BattleDeck(instances:List<MoveInstance>,private val random:Random,slotCount:Int=4){
+    val original=instances.toList()
     val draw=ArrayDeque(instances.shuffled(random))
     val discard=mutableListOf<MoveInstance>()
     val exhausted=mutableListOf<MoveInstance>()
@@ -25,7 +26,7 @@ class BattleDeck(instances:List<MoveInstance>,private val random:Random,slotCoun
     }
 }
 data class TimedAffliction(val id:String,var remaining:Int,val appliedRound:Int)
-class SpireCombatant(val uid:String,val species:String,val types:Set<String>,maxHp:Int,val deck:BattleDeck?=null){
+class SpireCombatant(val uid:String,val species:String,val types:Set<String>,maxHp:Int,var deck:BattleDeck?=null){
     var maxHp=maxHp;private set
     var hp=maxHp
     val alive get()=hp>0
@@ -55,9 +56,23 @@ data class EnemyIntent(val actor:Int,val move:SpireMove)
 data class SpireBattleEvent(val name:String,val round:Int,val actor:String="",val target:String="",val amount:Int=0)
 fun interface SpireBattleHook{fun dispatch(event:SpireBattleEvent,battle:SpireBattle)}
 
+interface SpireEffects {
+    fun cost(card:MoveInstance)=card.move.cost
+    fun healing(source:SpireCombatant,move:SpireMove)=floor(source.maxHp*move.healFraction).toInt()
+    fun validate(source:SpireCombatant,card:MoveInstance){}
+    fun beforeAction(source:SpireCombatant,move:SpireMove,battle:SpireBattle)=true
+    fun canHit(source:SpireCombatant,target:SpireCombatant,move:SpireMove,battle:SpireBattle)=true
+    fun accuracy(source:SpireCombatant,target:SpireCombatant,move:SpireMove)=move.accuracy
+    fun damage(source:SpireCombatant,target:SpireCombatant,move:SpireMove,upgraded:Boolean,multiplier:Double):Double=move.power*multiplier*(if(upgraded)1.2 else 1.0)
+    fun hit(source:SpireCombatant,target:SpireCombatant,move:SpireMove,damage:Int,battle:SpireBattle){}
+    fun resolved(source:SpireCombatant,move:SpireMove,totalDamage:Int,battle:SpireBattle){}
+    fun switched(out:SpireCombatant,into:SpireCombatant,battle:SpireBattle){}
+    fun periodic(mon:SpireCombatant,battle:SpireBattle){if("poison" in mon.statuses||"burn" in mon.statuses)mon.hp=(mon.hp-(mon.maxHp/16).coerceAtLeast(1)).coerceAtLeast(0)}
+}
+
 class SpireBattle(val players:List<SpireBattlePlayer>,val enemies:List<SpireCombatant>,seed:Long,
     private val effectiveness:(String,Set<String>)->Double={_,_->1.0},
-    private val hook:SpireBattleHook=SpireBattleHook{_,_->}){
+    private val hook:SpireBattleHook=SpireBattleHook{_,_->},val effects:SpireEffects=object:SpireEffects{}){
     init{require(players.size in 1..4);require(enemies.size in 1..3);require(players.map{it.id}.distinct().size==players.size)}
     private val hitRandom=Random(seed)
     val events=mutableListOf<SpireBattleEvent>()
@@ -82,27 +97,33 @@ class SpireBattle(val players:List<SpireBattlePlayer>,val enemies:List<SpireComb
         val forced=p.forcedSwitch
         require(forced||!p.normalSwitchUsed&&p.energy>=1){"일반 교체는 라운드당 1회, 에너지 1이 필요합니다."}
         if(!forced){p.energy--;p.normalSwitchUsed=true}
-        p.active.leaveActive();p.activeIndex=index;commit(id,request);event(if(forced)"FORCED_SWITCH" else "NORMAL_SWITCH",id.toString(),p.active.uid)
+        val out=p.active;out.leaveActive();p.activeIndex=index;effects.switched(out,p.active,this);commit(id,request);event(if(forced)"FORCED_SWITCH" else "NORMAL_SWITCH",id.toString(),p.active.uid)
     }
     fun useMove(id:UUID,slot:Int,instance:Long,target:Int,request:String,token:Int){
         validateRequest(id,request,token);val p=participant(id);require(!p.ended&&p.active.alive){"생존한 포켓몬으로 교체하세요."}
         require("sleep" !in p.active.statuses){"수면 중에는 교체하거나 차례를 종료할 수 있습니다."}
         val deck=requireNotNull(p.active.deck);val card=requireNotNull(deck.slots.getOrNull(slot));require(card.uid==instance){"기술 슬롯이 변경되었습니다."}
-        val move=card.move;require(move.cost>=0&&p.energy>=move.cost){"에너지가 부족합니다."}
+        val move=card.move;val cost=effects.cost(card);effects.validate(p.active,card)
+        require(cost>=0&&p.energy>=cost){"에너지가 부족합니다."}
         require(target in enemies.indices&&enemies[target].alive){"살아 있는 적을 선택하세요."}
-        p.energy-=move.cost;commit(id,request);event("BEFORE_MOVE_COST",p.active.uid,amount=move.cost)
+        p.energy-=cost;commit(id,request);event("BEFORE_MOVE_COST",p.active.uid,amount=cost)
         val self=p.active;val foe=enemies[target]
-        val failed="paralysis" in self.statuses&&hitRandom.nextInt(100)<25
-        val hit=!failed&&hitRandom.nextInt(100)<move.accuracy.coerceIn(0,100)
-        if(hit){
-            val base=effectiveness(move.type,foe.types)
-            val multiplier=if(base==0.0)0.5 else base
-            if(move.power>0){val n=floor(move.power*multiplier*(if(card.upgraded)1.2 else 1.0)).toInt().coerceAtLeast(1);val actual=n.coerceAtMost(foe.hp);foe.hp-=actual;event("MOVE_HIT",self.uid,foe.uid,actual)
-                if(move.recoilFraction>0)self.hp=(self.hp-floor(actual*move.recoilFraction).toInt().coerceAtLeast(1)).coerceAtLeast(0)
-            }
-            if(move.status!=null&&foe.alive)foe.afflict(move.status,round,move.duration)
-            if(move.healFraction>0)self.heal(floor(self.maxHp*move.healFraction).toInt())
-        }else event("MOVE_MISS",self.uid,foe.uid)
+        val failed=("paralysis" in self.statuses&&hitRandom.nextInt(100)<25)||!effects.beforeAction(self,move,this)
+        val targets=if(move.selfTarget)listOf(self)else if(move.targetAll)enemies.filter{it.alive}else listOf(foe)
+        var inflicted=0
+        for(t in targets){
+            val hit=!failed&&effects.canHit(self,t,move,this)&&hitRandom.nextInt(100)<effects.accuracy(self,t,move).coerceIn(0,100)
+            if(hit){
+                val base=effectiveness(move.type,t.types);val multiplier=if(base==0.0)0.5 else base
+                val actual=if(move.power>0){val raw=effects.damage(self,t,move,card.upgraded,multiplier);val n=if(raw<=0)0 else floor(raw).toInt().coerceAtLeast(1);n.coerceAtMost(t.hp)}else 0
+                t.hp-=actual;inflicted+=actual;event("MOVE_HIT",self.uid,t.uid,actual)
+                if(move.status!=null&&t.alive)t.afflict(move.status,round,move.duration)
+                effects.hit(self,t,move,actual,this)
+            }else event("MOVE_MISS",self.uid,t.uid)
+        }
+        if(inflicted>0&&move.recoilFraction>0)self.hp=(self.hp-floor(inflicted*move.recoilFraction).toInt().coerceAtLeast(1)).coerceAtLeast(0)
+        if(!failed&&move.healFraction>0)self.heal(effects.healing(self,move))
+        effects.resolved(self,move,inflicted,this)
         event("MOVE_RESOLVED",self.uid,foe.uid);deck.consume(slot);event("SLOT_REPLACED",self.uid)
         decideResult()
     }
@@ -117,16 +138,25 @@ class SpireBattle(val players:List<SpireBattlePlayer>,val enemies:List<SpireComb
         for((index,intent) in actions.withIndex()){
             val actor=enemies[intent.actor];val move=intent.move
             if(!actor.alive)continue
-            if(move.healFraction>0){actor.heal(floor(actor.maxHp*move.healFraction).toInt());event("ENEMY_HEAL",actor.uid)}
-            else {
-                // Capture active targets once per action; never spill effects into a benched Pokemon.
-                val targets=players.map{it.active}.filter{it.alive}
-                for(target in targets){if(hitRandom.nextInt(100)<move.accuracy.coerceIn(0,100)){
-                    val mul=effectiveness(move.type,target.types)
-                    if(move.power>0&&mul>0){val n=floor(move.power*mul).toInt().coerceAtLeast(1).coerceAtMost(target.hp);target.hp-=n;event("AFTER_DAMAGE_TAKEN",actor.uid,target.uid,n)}
-                    if(move.status!=null&&target.alive)target.afflict(move.status,round,move.duration)
-                }else event("MOVE_MISS",actor.uid,target.uid)}
-                if(move.recoilFraction>0)actor.hp=(actor.hp-floor(actor.maxHp*move.recoilFraction).toInt().coerceAtLeast(1)).coerceAtLeast(0)
+            val canAct="sleep" !in actor.statuses&&!("paralysis" in actor.statuses&&hitRandom.nextInt(100)<25)&&effects.beforeAction(actor,move,this)
+            if(canAct){
+                event("ENEMY_MOVE_STARTED",actor.uid,move.id)
+                val targets=if(move.selfTarget)listOf(actor)else players.map{it.active}.filter{it.alive}
+                var inflicted=0
+                for(target in targets){
+                    if(effects.canHit(actor,target,move,this)&&hitRandom.nextInt(100)<effects.accuracy(actor,target,move).coerceIn(0,100)){
+                        val mul=effectiveness(move.type,target.types)
+                        if(move.power>0&&mul==0.0){event("MOVE_MISS",actor.uid,target.uid);continue}
+                        val raw=if(move.power>0&&mul>0)effects.damage(actor,target,move,false,mul)else 0.0
+                        val n=if(raw<=0)0 else floor(raw).toInt().coerceAtLeast(1).coerceAtMost(target.hp)
+                        target.hp-=n;inflicted+=n;event("AFTER_DAMAGE_TAKEN",actor.uid,target.uid,n)
+                        if(move.status!=null&&target.alive)target.afflict(move.status,round,move.duration)
+                        effects.hit(actor,target,move,n,this)
+                    }else event("MOVE_MISS",actor.uid,target.uid)
+                }
+                effects.resolved(actor,move,inflicted,this)
+                if(move.healFraction>0)actor.heal(effects.healing(actor,move))
+                if(move.recoilFraction>0&&inflicted>0)actor.hp=(actor.hp-floor(inflicted*move.recoilFraction).toInt().coerceAtLeast(1)).coerceAtLeast(0)
             }
             event("ENEMY_ACTION_RESOLVED",actor.uid)
             if(index==actions.lastIndex){event("ENEMY_PHASE_END");if(decideResult())return}
@@ -135,9 +165,9 @@ class SpireBattle(val players:List<SpireBattlePlayer>,val enemies:List<SpireComb
         if(actions.isEmpty()){event("ENEMY_PHASE_END");if(decideResult())return}
         // Active-only periodic effects. Bench timers and poison/burn HP do not tick.
         for(mon in players.map{it.active}.filter{it.alive}+enemies.filter{it.alive}){
-            if("poison" in mon.statuses||"burn" in mon.statuses)mon.hp=(mon.hp-(mon.maxHp/16).coerceAtLeast(1)).coerceAtLeast(0)
-            mon.statuses.values.filter{it.id in setOf("sleep","paralysis")&&it.appliedRound<round}.forEach{it.remaining--}
-            mon.statuses.entries.removeIf{it.value.id in setOf("sleep","paralysis")&&it.value.remaining<=0}
+            effects.periodic(mon,this)
+            mon.statuses.values.filter{it.id in setOf("sleep","paralysis","confusion")&&it.appliedRound<round}.forEach{it.remaining--}
+            mon.statuses.entries.removeIf{it.value.id in setOf("sleep","paralysis","confusion")&&it.value.remaining<=0}
         }
         event("ROUND_END");if(decideResult())return
         round++;phase=SpireBattlePhase.PLAYER

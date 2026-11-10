@@ -19,6 +19,7 @@ class RegistryScreen(private val data:JsonObject):Screen(Component.literal("Cobb
         addRenderableWidget(Button.builder(Component.literal("검색")){page(0)}.bounds(x+w-96,43,84,20).build())
         addRenderableWidget(Button.builder(Component.literal("이전")){page(data.number("page")-1)}.bounds(x+12,height-34,82,20).build().also{it.active=data.number("page")>0})
         addRenderableWidget(Button.builder(Component.literal("다음")){page(data.number("page")+1)}.bounds(x+100,height-34,82,20).build().also{it.active=(data.number("page")+1)*12<data.number("total")})
+        addRenderableWidget(Button.builder(Component.literal("모험 화면")){SpireClient.send("open")}.bounds(x+w-184,height-34,82,20).build())
         addRenderableWidget(Button.builder(Component.literal("닫기")){onClose()}.bounds(x+w-96,height-34,84,20).build())
     }
     private fun page(p:Int){SpireClient.send("catalog"){addProperty("query",search.value);addProperty("page",p)}}
