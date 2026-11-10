@@ -1,0 +1,181 @@
+{
+  "pokemon_party": {
+    "max_per_player": 3,
+    "active_per_player": 1,
+    "starter": {
+      "chosen_leader": 1,
+      "automatic_partners": 2,
+      "partner_type_rule": "PAIRWISE_DISJOINT_ALL_TYPES"
+    },
+    "recruitment": {
+      "acquire_from": [
+        "QUESTION_MARK_EVENT",
+        "SELECT_REWARD_NODE"
+      ],
+      "replace_at": [
+        "SHOP",
+        "SELECT_EVENT"
+      ],
+      "at_capacity": "REPLACE_EXISTING"
+    },
+    "deck_owner": "POKEMON",
+    "hp_owner": "POKEMON",
+    "status_owner": "POKEMON",
+    "battle_deck_state": {
+      "scope": "CURRENT_BATTLE",
+      "owner": "POKEMON",
+      "preserved_fields": [
+        "MOVE_SLOTS",
+        "DRAW_ORDER",
+        "DISCARD_PILE",
+        "EXHAUST_PILE"
+      ],
+      "on_reentry": "RESUME_OWN_STATE"
+    },
+    "mega_form": {
+      "preserve_on": [
+        "SWITCH_OUT",
+        "REENTRY"
+      ],
+      "revert_on": "BATTLE_END"
+    }
+  },
+  "switch": {
+    "normal": {
+      "phase": "PLAYER_PHASE",
+      "uses_per_player_per_round": 1,
+      "energy_cost": 1,
+      "reset_at": "ROUND_START",
+      "allowed_while_afflicted": [
+        "SLEEP",
+        "PARALYSIS"
+      ],
+      "post_switch_move": "ALLOW_WITH_REMAINING_ENERGY_AND_NORMAL_CHECKS"
+    },
+    "forced": {
+      "energy_cost": 0,
+      "consumes_normal_use": false,
+      "finish_current_enemy_action": true,
+      "redirect_current_enemy_action_to_replacement": false,
+      "resolve_before": "NEXT_PLAYER_ACTION"
+    },
+    "separate_from_move_slot_reroll": true,
+    "reset_on_switch_out": [
+      "TEMPORARY_STAT_STAGES"
+    ],
+    "preserve_on_switch_out": [
+      "CURRENT_HP",
+      "FAINTED_STATE",
+      "MEGA_FORM",
+      "STATUS_AILMENTS",
+      "DECK_AND_UPGRADES"
+    ]
+  },
+  "status": {
+    "timed_statuses": [
+      "SLEEP",
+      "PARALYSIS"
+    ],
+    "tick_event": "ROUND_END",
+    "active_only": true,
+    "skip_application_round": true,
+    "max_ticks_per_round": 1,
+    "preserve_duration_on_switch": true,
+    "tick_on_battle_result": false,
+    "clear_on": [
+      "VICTORY",
+      "DEFEAT"
+    ],
+    "clear_scope": "ALL_PARTY_POKEMON",
+    "clear_all_ailments": true,
+    "clear_temporary_stat_stages": true,
+    "bench_effects": {
+      "scope": "IN_BATTLE",
+      "preserve_without_periodic_damage": [
+        "POISON",
+        "BURN"
+      ],
+      "clear_from_switching_out_target": [
+        "LEECH_SEED",
+        "TRAPPING"
+      ],
+      "preserve_battle_wide_effects": true,
+      "pokemon_targeted_relics_and_held_items": "EXPLICIT_BENCH_TARGET_ONLY"
+    }
+  },
+  "victory": {
+    "event": "BATTLE_WON",
+    "max_resolutions_per_battle": 1,
+    "fainted_restore_fraction": 0.2,
+    "preserve_survivor_hp": true,
+    "existing_growth_and_heal_effects_apply": true,
+    "sequence": [
+      "SNAPSHOT_SURVIVAL_AND_HP",
+      "CONFIRM_VICTORY",
+      "APPLY_EXISTING_PROGRESSION",
+      "REVIVE_FAINTED",
+      "DISPATCH_VICTORY_RELICS",
+      "FINALIZE_HP_AND_ADVANCE"
+    ],
+    "alive_only_relics_use_pre_revive_snapshot": true,
+    "owner_heal_relic": "S03",
+    "party_heal_relic": "C01",
+    "in_battle_revive_relic": "C04",
+    "fainted_restore_rounding": "FLOOR",
+    "fainted_restore_min_hp": 1
+  },
+  "enemy_targets": {
+    "registry_policy": "ALL_ALIVE_PLAYERS",
+    "selector": "LIVING_ACTIVE_POKEMON_PER_PLAYER"
+  },
+  "run_state": {
+    "authoritative": "SERVER",
+    "storage": "MEMORY_ONLY",
+    "save_enabled": false,
+    "load_enabled": false,
+    "on_start": "CREATE_NEW_RUN",
+    "on_end": "DISCARD_RUN",
+    "on_restart": "DISCARD_AND_CREATE_NEW_RUN",
+    "on_server_restart": "DISCARD_RUN",
+    "seeded_rng_streams": [
+      "map",
+      "encounters",
+      "ai",
+      "draw",
+      "rewards",
+      "relics"
+    ]
+  },
+  "pending": {},
+  "battle_result": {
+    "sequence": [
+      "RESOLVE_CURRENT_ACTION_AND_FAINTS",
+      "DISPATCH_ENEMY_PHASE_END_IF_REACHED",
+      "DECIDE_RESULT"
+    ],
+    "enemy_phase_end": {
+      "event": "ENEMY_PHASE_END",
+      "rescue_relic": "C04",
+      "synthetic_on_early_end": false
+    },
+    "allied_survival_scope": "ALL_ACTIVE_AND_BENCHED_POKEMON",
+    "result_priority": [
+      {
+        "when": "NO_LIVING_ALLIES",
+        "result": "DEFEAT"
+      },
+      {
+        "when": "NO_LIVING_ENEMIES",
+        "result": "VICTORY"
+      }
+    ],
+    "otherwise": "CONTINUE"
+  },
+  "rest_heal": {
+    "base_max_hp_fraction": 0.3,
+    "recipient_scope": "ALL_LIVING_POKEMON_OF_RESTING_PLAYER",
+    "cap_at_max_hp": true,
+    "revives_fainted": false,
+    "respect_existing_relic_modifiers_and_restrictions": true
+  }
+}

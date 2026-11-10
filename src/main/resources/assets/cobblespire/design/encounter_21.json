@@ -1,0 +1,596 @@
+[
+  {
+    "encounter_id": "ACT1-R01",
+    "act": 1,
+    "faction_theme": "로켓단",
+    "enemy_instances": [
+      {
+        "enemy_id": "enemy:rattata",
+        "display_name_ko": "꼬렛",
+        "threat_weight": 1.0
+      }
+    ],
+    "enemy_count": 1,
+    "tier": "NORMAL",
+    "present_trainer_entity": false,
+    "initial_visible_intents": true,
+    "encounter_director": {
+      "max_high_damage_intents": 1,
+      "max_hard_control_intents": 1,
+      "resolve_order": "ENEMY_SLOT_ASC",
+      "excess_policy": "PICK_NON_HIGH_DAMAGE_RULE"
+    },
+    "boss_phase_profile": null,
+    "verification": "SPECIES_MOVE_LEARNSET_MODPACK_PENDING"
+  },
+  {
+    "encounter_id": "ACT1-R02",
+    "act": 1,
+    "faction_theme": "로켓단",
+    "enemy_instances": [
+      {
+        "enemy_id": "enemy:ekans",
+        "display_name_ko": "아보",
+        "threat_weight": 1.0
+      },
+      {
+        "enemy_id": "enemy:zubat",
+        "display_name_ko": "주뱃",
+        "threat_weight": 1.0
+      }
+    ],
+    "enemy_count": 2,
+    "tier": "NORMAL",
+    "present_trainer_entity": false,
+    "initial_visible_intents": true,
+    "encounter_director": {
+      "max_high_damage_intents": 1,
+      "max_hard_control_intents": 1,
+      "resolve_order": "ENEMY_SLOT_ASC",
+      "excess_policy": "PICK_NON_HIGH_DAMAGE_RULE"
+    },
+    "boss_phase_profile": null,
+    "verification": "SPECIES_MOVE_LEARNSET_MODPACK_PENDING"
+  },
+  {
+    "encounter_id": "ACT1-R03",
+    "act": 1,
+    "faction_theme": "로켓단",
+    "enemy_instances": [
+      {
+        "enemy_id": "enemy:rattata",
+        "display_name_ko": "꼬렛",
+        "threat_weight": 1.0
+      },
+      {
+        "enemy_id": "enemy:ekans",
+        "display_name_ko": "아보",
+        "threat_weight": 1.0
+      },
+      {
+        "enemy_id": "enemy:zubat",
+        "display_name_ko": "주뱃",
+        "threat_weight": 1.0
+      }
+    ],
+    "enemy_count": 3,
+    "tier": "NORMAL",
+    "present_trainer_entity": false,
+    "initial_visible_intents": true,
+    "encounter_director": {
+      "max_high_damage_intents": 1,
+      "max_hard_control_intents": 1,
+      "resolve_order": "ENEMY_SLOT_ASC",
+      "excess_policy": "PICK_NON_HIGH_DAMAGE_RULE"
+    },
+    "boss_phase_profile": null,
+    "verification": "SPECIES_MOVE_LEARNSET_MODPACK_PENDING"
+  },
+  {
+    "encounter_id": "ACT1-R04",
+    "act": 1,
+    "faction_theme": "로켓단",
+    "enemy_instances": [
+      {
+        "enemy_id": "enemy:arbok",
+        "display_name_ko": "아보크",
+        "threat_weight": 1.0
+      },
+      {
+        "enemy_id": "enemy:weezing",
+        "display_name_ko": "또도가스",
+        "threat_weight": 1.0
+      }
+    ],
+    "enemy_count": 2,
+    "tier": "ELITE",
+    "present_trainer_entity": false,
+    "initial_visible_intents": true,
+    "encounter_director": {
+      "max_high_damage_intents": 2,
+      "max_hard_control_intents": 1,
+      "resolve_order": "ENEMY_SLOT_ASC",
+      "excess_policy": "PICK_NON_HIGH_DAMAGE_RULE"
+    },
+    "boss_phase_profile": null,
+    "verification": "SPECIES_MOVE_LEARNSET_MODPACK_PENDING"
+  },
+  {
+    "encounter_id": "ACT1-R05",
+    "act": 1,
+    "faction_theme": "로켓단",
+    "enemy_instances": [
+      {
+        "enemy_id": "enemy:houndoom",
+        "display_name_ko": "헬가",
+        "threat_weight": 1.0
+      }
+    ],
+    "enemy_count": 1,
+    "tier": "ELITE",
+    "present_trainer_entity": false,
+    "initial_visible_intents": true,
+    "encounter_director": {
+      "max_high_damage_intents": 2,
+      "max_hard_control_intents": 1,
+      "resolve_order": "ENEMY_SLOT_ASC",
+      "excess_policy": "PICK_NON_HIGH_DAMAGE_RULE"
+    },
+    "boss_phase_profile": null,
+    "verification": "SPECIES_MOVE_LEARNSET_MODPACK_PENDING"
+  },
+  {
+    "encounter_id": "ACT1-R06",
+    "act": 1,
+    "faction_theme": "로켓단",
+    "enemy_instances": [
+      {
+        "enemy_id": "enemy:nidoking",
+        "display_name_ko": "니드킹",
+        "threat_weight": 1.15
+      }
+    ],
+    "enemy_count": 1,
+    "tier": "BOSS",
+    "present_trainer_entity": false,
+    "initial_visible_intents": true,
+    "encounter_director": {
+      "max_high_damage_intents": 3,
+      "max_hard_control_intents": 1,
+      "resolve_order": "ENEMY_SLOT_ASC",
+      "excess_policy": "PICK_NON_HIGH_DAMAGE_RULE"
+    },
+    "boss_phase_profile": "phase_act1_r06",
+    "verification": "SPECIES_MOVE_LEARNSET_MODPACK_PENDING"
+  },
+  {
+    "encounter_id": "ACT1-R07",
+    "act": 1,
+    "faction_theme": "로켓단",
+    "enemy_instances": [
+      {
+        "enemy_id": "enemy:nidoking",
+        "display_name_ko": "니드킹",
+        "threat_weight": 1.15
+      },
+      {
+        "enemy_id": "enemy:nidoqueen",
+        "display_name_ko": "니드퀸",
+        "threat_weight": 1.0
+      }
+    ],
+    "enemy_count": 2,
+    "tier": "BOSS",
+    "present_trainer_entity": false,
+    "initial_visible_intents": true,
+    "encounter_director": {
+      "max_high_damage_intents": 3,
+      "max_hard_control_intents": 1,
+      "resolve_order": "ENEMY_SLOT_ASC",
+      "excess_policy": "PICK_NON_HIGH_DAMAGE_RULE"
+    },
+    "boss_phase_profile": "phase_act1_r07",
+    "verification": "SPECIES_MOVE_LEARNSET_MODPACK_PENDING"
+  },
+  {
+    "encounter_id": "ACT2-M01",
+    "act": 2,
+    "faction_theme": "마그마단",
+    "enemy_instances": [
+      {
+        "enemy_id": "enemy:numel",
+        "display_name_ko": "둔타",
+        "threat_weight": 1.0
+      },
+      {
+        "enemy_id": "enemy:mightyena",
+        "display_name_ko": "그라에나",
+        "threat_weight": 1.0
+      }
+    ],
+    "enemy_count": 2,
+    "tier": "NORMAL",
+    "present_trainer_entity": false,
+    "initial_visible_intents": true,
+    "encounter_director": {
+      "max_high_damage_intents": 1,
+      "max_hard_control_intents": 1,
+      "resolve_order": "ENEMY_SLOT_ASC",
+      "excess_policy": "PICK_NON_HIGH_DAMAGE_RULE"
+    },
+    "boss_phase_profile": null,
+    "verification": "SPECIES_MOVE_LEARNSET_MODPACK_PENDING"
+  },
+  {
+    "encounter_id": "ACT2-M02",
+    "act": 2,
+    "faction_theme": "마그마단",
+    "enemy_instances": [
+      {
+        "enemy_id": "enemy:golbat",
+        "display_name_ko": "골뱃",
+        "threat_weight": 1.0
+      },
+      {
+        "enemy_id": "enemy:koffing",
+        "display_name_ko": "또가스",
+        "threat_weight": 1.0
+      },
+      {
+        "enemy_id": "enemy:numel",
+        "display_name_ko": "둔타",
+        "threat_weight": 1.0
+      }
+    ],
+    "enemy_count": 3,
+    "tier": "NORMAL",
+    "present_trainer_entity": false,
+    "initial_visible_intents": true,
+    "encounter_director": {
+      "max_high_damage_intents": 1,
+      "max_hard_control_intents": 1,
+      "resolve_order": "ENEMY_SLOT_ASC",
+      "excess_policy": "PICK_NON_HIGH_DAMAGE_RULE"
+    },
+    "boss_phase_profile": null,
+    "verification": "SPECIES_MOVE_LEARNSET_MODPACK_PENDING"
+  },
+  {
+    "encounter_id": "ACT2-M03",
+    "act": 2,
+    "faction_theme": "마그마단",
+    "enemy_instances": [
+      {
+        "enemy_id": "enemy:camerupt",
+        "display_name_ko": "폭타",
+        "threat_weight": 1.0
+      }
+    ],
+    "enemy_count": 1,
+    "tier": "ELITE",
+    "present_trainer_entity": false,
+    "initial_visible_intents": true,
+    "encounter_director": {
+      "max_high_damage_intents": 2,
+      "max_hard_control_intents": 1,
+      "resolve_order": "ENEMY_SLOT_ASC",
+      "excess_policy": "PICK_NON_HIGH_DAMAGE_RULE"
+    },
+    "boss_phase_profile": null,
+    "verification": "SPECIES_MOVE_LEARNSET_MODPACK_PENDING"
+  },
+  {
+    "encounter_id": "ACT2-M04",
+    "act": 2,
+    "faction_theme": "마그마단",
+    "enemy_instances": [
+      {
+        "enemy_id": "enemy:camerupt_mega",
+        "display_name_ko": "메가폭타",
+        "threat_weight": 1.15
+      }
+    ],
+    "enemy_count": 1,
+    "tier": "BOSS",
+    "present_trainer_entity": false,
+    "initial_visible_intents": true,
+    "encounter_director": {
+      "max_high_damage_intents": 3,
+      "max_hard_control_intents": 1,
+      "resolve_order": "ENEMY_SLOT_ASC",
+      "excess_policy": "PICK_NON_HIGH_DAMAGE_RULE"
+    },
+    "boss_phase_profile": "phase_act2_m04",
+    "verification": "SPECIES_MOVE_LEARNSET_MODPACK_PENDING"
+  },
+  {
+    "encounter_id": "ACT2-A01",
+    "act": 2,
+    "faction_theme": "아쿠아단",
+    "enemy_instances": [
+      {
+        "enemy_id": "enemy:carvanha",
+        "display_name_ko": "샤프니아",
+        "threat_weight": 1.0
+      },
+      {
+        "enemy_id": "enemy:mightyena",
+        "display_name_ko": "그라에나",
+        "threat_weight": 1.0
+      }
+    ],
+    "enemy_count": 2,
+    "tier": "NORMAL",
+    "present_trainer_entity": false,
+    "initial_visible_intents": true,
+    "encounter_director": {
+      "max_high_damage_intents": 1,
+      "max_hard_control_intents": 1,
+      "resolve_order": "ENEMY_SLOT_ASC",
+      "excess_policy": "PICK_NON_HIGH_DAMAGE_RULE"
+    },
+    "boss_phase_profile": null,
+    "verification": "SPECIES_MOVE_LEARNSET_MODPACK_PENDING"
+  },
+  {
+    "encounter_id": "ACT2-A02",
+    "act": 2,
+    "faction_theme": "아쿠아단",
+    "enemy_instances": [
+      {
+        "enemy_id": "enemy:carvanha",
+        "display_name_ko": "샤프니아",
+        "threat_weight": 1.0
+      },
+      {
+        "enemy_id": "enemy:golbat",
+        "display_name_ko": "골뱃",
+        "threat_weight": 1.0
+      },
+      {
+        "enemy_id": "enemy:wailmer",
+        "display_name_ko": "고래왕자",
+        "threat_weight": 1.0
+      }
+    ],
+    "enemy_count": 3,
+    "tier": "NORMAL",
+    "present_trainer_entity": false,
+    "initial_visible_intents": true,
+    "encounter_director": {
+      "max_high_damage_intents": 1,
+      "max_hard_control_intents": 1,
+      "resolve_order": "ENEMY_SLOT_ASC",
+      "excess_policy": "PICK_NON_HIGH_DAMAGE_RULE"
+    },
+    "boss_phase_profile": null,
+    "verification": "SPECIES_MOVE_LEARNSET_MODPACK_PENDING"
+  },
+  {
+    "encounter_id": "ACT2-A03",
+    "act": 2,
+    "faction_theme": "아쿠아단",
+    "enemy_instances": [
+      {
+        "enemy_id": "enemy:sharpedo",
+        "display_name_ko": "샤크니아",
+        "threat_weight": 1.0
+      }
+    ],
+    "enemy_count": 1,
+    "tier": "ELITE",
+    "present_trainer_entity": false,
+    "initial_visible_intents": true,
+    "encounter_director": {
+      "max_high_damage_intents": 2,
+      "max_hard_control_intents": 1,
+      "resolve_order": "ENEMY_SLOT_ASC",
+      "excess_policy": "PICK_NON_HIGH_DAMAGE_RULE"
+    },
+    "boss_phase_profile": null,
+    "verification": "SPECIES_MOVE_LEARNSET_MODPACK_PENDING"
+  },
+  {
+    "encounter_id": "ACT2-A04",
+    "act": 2,
+    "faction_theme": "아쿠아단",
+    "enemy_instances": [
+      {
+        "enemy_id": "enemy:sharpedo_mega",
+        "display_name_ko": "메가샤크니아",
+        "threat_weight": 1.15
+      }
+    ],
+    "enemy_count": 1,
+    "tier": "BOSS",
+    "present_trainer_entity": false,
+    "initial_visible_intents": true,
+    "encounter_director": {
+      "max_high_damage_intents": 3,
+      "max_hard_control_intents": 1,
+      "resolve_order": "ENEMY_SLOT_ASC",
+      "excess_policy": "PICK_NON_HIGH_DAMAGE_RULE"
+    },
+    "boss_phase_profile": "phase_act2_a04",
+    "verification": "SPECIES_MOVE_LEARNSET_MODPACK_PENDING"
+  },
+  {
+    "encounter_id": "ACT3-G01",
+    "act": 3,
+    "faction_theme": "갤럭시단",
+    "enemy_instances": [
+      {
+        "enemy_id": "enemy:skuntank",
+        "display_name_ko": "스컹탱크",
+        "threat_weight": 1.0
+      },
+      {
+        "enemy_id": "enemy:purugly",
+        "display_name_ko": "몬냥이",
+        "threat_weight": 1.0
+      }
+    ],
+    "enemy_count": 2,
+    "tier": "NORMAL",
+    "present_trainer_entity": false,
+    "initial_visible_intents": true,
+    "encounter_director": {
+      "max_high_damage_intents": 1,
+      "max_hard_control_intents": 1,
+      "resolve_order": "ENEMY_SLOT_ASC",
+      "excess_policy": "PICK_NON_HIGH_DAMAGE_RULE"
+    },
+    "boss_phase_profile": null,
+    "verification": "SPECIES_MOVE_LEARNSET_MODPACK_PENDING"
+  },
+  {
+    "encounter_id": "ACT3-G02",
+    "act": 3,
+    "faction_theme": "갤럭시단",
+    "enemy_instances": [
+      {
+        "enemy_id": "enemy:toxicroak",
+        "display_name_ko": "독개굴",
+        "threat_weight": 1.0
+      },
+      {
+        "enemy_id": "enemy:bronzong",
+        "display_name_ko": "동탁군",
+        "threat_weight": 1.0
+      },
+      {
+        "enemy_id": "enemy:golbat",
+        "display_name_ko": "골뱃",
+        "threat_weight": 1.0
+      }
+    ],
+    "enemy_count": 3,
+    "tier": "NORMAL",
+    "present_trainer_entity": false,
+    "initial_visible_intents": true,
+    "encounter_director": {
+      "max_high_damage_intents": 1,
+      "max_hard_control_intents": 1,
+      "resolve_order": "ENEMY_SLOT_ASC",
+      "excess_policy": "PICK_NON_HIGH_DAMAGE_RULE"
+    },
+    "boss_phase_profile": null,
+    "verification": "SPECIES_MOVE_LEARNSET_MODPACK_PENDING"
+  },
+  {
+    "encounter_id": "ACT3-G03",
+    "act": 3,
+    "faction_theme": "갤럭시단",
+    "enemy_instances": [
+      {
+        "enemy_id": "enemy:purugly",
+        "display_name_ko": "몬냥이",
+        "threat_weight": 1.0
+      },
+      {
+        "enemy_id": "enemy:skuntank",
+        "display_name_ko": "스컹탱크",
+        "threat_weight": 1.0
+      }
+    ],
+    "enemy_count": 2,
+    "tier": "ELITE",
+    "present_trainer_entity": false,
+    "initial_visible_intents": true,
+    "encounter_director": {
+      "max_high_damage_intents": 2,
+      "max_hard_control_intents": 1,
+      "resolve_order": "ENEMY_SLOT_ASC",
+      "excess_policy": "PICK_NON_HIGH_DAMAGE_RULE"
+    },
+    "boss_phase_profile": null,
+    "verification": "SPECIES_MOVE_LEARNSET_MODPACK_PENDING"
+  },
+  {
+    "encounter_id": "ACT3-G04",
+    "act": 3,
+    "faction_theme": "갤럭시단",
+    "enemy_instances": [
+      {
+        "enemy_id": "enemy:toxicroak",
+        "display_name_ko": "독개굴",
+        "threat_weight": 1.0
+      }
+    ],
+    "enemy_count": 1,
+    "tier": "ELITE",
+    "present_trainer_entity": false,
+    "initial_visible_intents": true,
+    "encounter_director": {
+      "max_high_damage_intents": 2,
+      "max_hard_control_intents": 1,
+      "resolve_order": "ENEMY_SLOT_ASC",
+      "excess_policy": "PICK_NON_HIGH_DAMAGE_RULE"
+    },
+    "boss_phase_profile": null,
+    "verification": "SPECIES_MOVE_LEARNSET_MODPACK_PENDING"
+  },
+  {
+    "encounter_id": "ACT3-G05",
+    "act": 3,
+    "faction_theme": "갤럭시단",
+    "enemy_instances": [
+      {
+        "enemy_id": "enemy:weavile",
+        "display_name_ko": "포푸니라",
+        "threat_weight": 1.15
+      },
+      {
+        "enemy_id": "enemy:honchkrow",
+        "display_name_ko": "돈크로우",
+        "threat_weight": 1.0
+      }
+    ],
+    "enemy_count": 2,
+    "tier": "BOSS",
+    "present_trainer_entity": false,
+    "initial_visible_intents": true,
+    "encounter_director": {
+      "max_high_damage_intents": 3,
+      "max_hard_control_intents": 1,
+      "resolve_order": "ENEMY_SLOT_ASC",
+      "excess_policy": "PICK_NON_HIGH_DAMAGE_RULE"
+    },
+    "boss_phase_profile": "phase_act3_g05",
+    "verification": "SPECIES_MOVE_LEARNSET_MODPACK_PENDING"
+  },
+  {
+    "encounter_id": "ACT3-G06",
+    "act": 3,
+    "faction_theme": "갤럭시단",
+    "enemy_instances": [
+      {
+        "enemy_id": "enemy:weavile",
+        "display_name_ko": "포푸니라",
+        "threat_weight": 1.15
+      },
+      {
+        "enemy_id": "enemy:honchkrow",
+        "display_name_ko": "돈크로우",
+        "threat_weight": 1.0
+      },
+      {
+        "enemy_id": "enemy:crobat",
+        "display_name_ko": "크로뱃",
+        "threat_weight": 1.0
+      }
+    ],
+    "enemy_count": 3,
+    "tier": "BOSS",
+    "present_trainer_entity": false,
+    "initial_visible_intents": true,
+    "encounter_director": {
+      "max_high_damage_intents": 3,
+      "max_hard_control_intents": 1,
+      "resolve_order": "ENEMY_SLOT_ASC",
+      "excess_policy": "PICK_NON_HIGH_DAMAGE_RULE"
+    },
+    "boss_phase_profile": "phase_act3_g06",
+    "verification": "SPECIES_MOVE_LEARNSET_MODPACK_PENDING"
+  }
+]

@@ -1,0 +1,52 @@
+{
+  "schema_validation": "PASS_JSONSCHEMA_DRAFT_2020_12",
+  "static_reference_validation": "PASS",
+  "errors": [],
+  "v4_1_rule_examples": {
+    "reentry_preserves_each_pokemon_battle_deck": true,
+    "battle_result_after_action_and_phase_effects": true,
+    "mutual_knockout_is_defeat": true,
+    "surviving_bench_can_win_or_continue": true,
+    "living_allies_and_enemies_continue": true,
+    "c04_only_at_real_enemy_phase_end": true,
+    "c04_revival_conditions_unchanged": true,
+    "starter_types_pairwise_disjoint": true,
+    "victory_revive_rounds_down_with_minimum_one": true,
+    "status_does_not_block_switch": true,
+    "bench_effect_scopes": true,
+    "mega_form_reverts_only_at_battle_end": true,
+    "rest_recovers_all_living_and_caps_hp": true,
+    "six_open_combat_rules_resolved": true,
+    "starter_party_and_independent_decks": true,
+    "switch_cost_and_limit": true,
+    "forced_switch_is_free": true,
+    "forced_switch_timing": true,
+    "reroll_is_separate": true,
+    "sleep_and_paralysis_timing": true,
+    "status_cleared_at_battle_end": true,
+    "victory_and_defeat_hp": true,
+    "victory_relic_snapshot": true,
+    "rescue_remains_in_battle": true,
+    "run_is_memory_only": true
+  },
+  "counts": {
+    "relics": 165,
+    "relic_effect_rules": 182,
+    "events": 54,
+    "conditions": 149,
+    "actions": 90,
+    "enemy_actors": 25,
+    "ai_rules": 57,
+    "encounters": 21,
+    "boss_phases": 14
+  },
+  "outstanding_verification": [
+    "Cobblemon move learnsets",
+    "Mega Showdown form IDs",
+    "showdown execution bridge",
+    "runtime handlers",
+    "simulation winrates",
+    "relic player per-run uniqueness tests"
+  ],
+  "game_execution_tested": false
+}

@@ -1,0 +1,116 @@
+[
+  [
+    "A1:휴식처 기술 강화 DB"
+  ],
+  [
+    "A2:원본 전역 데이터 대신 선택한 기술 인스턴스만 강화한다. 각 인스턴스 최대 +1; 공격 피해·비용 보정은 모드 규칙."
+  ],
+  [
+    "A4:기술 ID",
+    "B4:기술",
+    "C4:기본 비용",
+    "D4:강화 후 비용",
+    "E4:직접 피해 계수",
+    "F4:강화 효과",
+    "G4:원본 유지 항목",
+    "H4:범위/횟수",
+    "I4:주의",
+    "J4:출처"
+  ],
+  [
+    "A5:tackle",
+    "B5:몸통박치기",
+    "C5:1",
+    "D5:1",
+    "E5:1.2",
+    "F5:직접 피해 +20%",
+    "G5:명중·부가효과 유지",
+    "H5:선택 인스턴스 1개",
+    "I5:일반 피해 기술에만 적용",
+    "J5:https://raw.githubusercontent.com/smogon/pokemon-showdown/master/data/moves.ts"
+  ],
+  [
+    "A6:flamethrower",
+    "B6:화염방사",
+    "C6:2",
+    "D6:2",
+    "E6:1.15",
+    "F6:직접 피해 +15%",
+    "G6:화상 부여 확률 유지",
+    "H6:선택 인스턴스 1개",
+    "I6:원본 전역 위력 수정 아님",
+    "J6:https://raw.githubusercontent.com/smogon/pokemon-showdown/master/data/moves.ts"
+  ],
+  [
+    "A7:hydropump",
+    "B7:하이드로펌프",
+    "C7:3",
+    "D7:2",
+    "E7:1",
+    "F7:비용 3 → 2",
+    "G7:명중률 80% 유지",
+    "H7:선택 인스턴스 1개",
+    "I7:빗나가도 비용·순환 규칙 동일",
+    "J7:https://raw.githubusercontent.com/smogon/pokemon-showdown/master/data/moves.ts"
+  ],
+  [
+    "A8:gigadrain",
+    "B8:기가드레인",
+    "C8:2",
+    "D8:2",
+    "E8:1.1",
+    "F8:직접 피해 +10%",
+    "G8:흡수 비율 유지",
+    "H8:선택 인스턴스 1개",
+    "I8:피해 증가에 따른 실제 흡수 증가도 평가",
+    "J8:https://raw.githubusercontent.com/smogon/pokemon-showdown/master/data/moves.ts"
+  ],
+  [
+    "A9:swordsdance",
+    "B9:칼춤",
+    "C9:2",
+    "D9:1",
+    "E9:1",
+    "F9:비용 2 → 1",
+    "G9:공격 +2랭크 유지",
+    "H9:선택 인스턴스 1개",
+    "I9:표의 에너지 비용은 신규 초안",
+    "J9:https://raw.githubusercontent.com/smogon/pokemon-showdown/master/data/moves.ts"
+  ],
+  [
+    "A10:irondefense",
+    "B10:철벽",
+    "C10:2",
+    "D10:1",
+    "E10:1",
+    "F10:비용 2 → 1",
+    "G10:방어 +2랭크 유지",
+    "H10:선택 인스턴스 1개",
+    "I10:원본 방어 기술과 구분",
+    "J10:https://raw.githubusercontent.com/smogon/pokemon-showdown/master/data/moves.ts"
+  ],
+  [
+    "A11:leechseed",
+    "B11:씨뿌리기",
+    "C11:1",
+    "D11:1",
+    "E11:1",
+    "F11:성공 후 다른 슬롯 1개 교체 선택",
+    "G11:씨뿌리기 본래 효과 유지",
+    "H11:해당 인스턴스/라운드 1회",
+    "I11:실패·이미 적용된 경우 추가 교체 없음",
+    "J11:https://raw.githubusercontent.com/smogon/pokemon-showdown/master/data/moves.ts"
+  ],
+  [
+    "A12:synthesis",
+    "B12:광합성",
+    "C12:2",
+    "D12:2",
+    "E12:1",
+    "F12:전투 첫 사용에 한해 비용 1",
+    "G12:날씨별 회복량 유지",
+    "H12:해당 인스턴스/전투 1회",
+    "I12:그 이후 비용 2; PP=5 자동 소멸 아님",
+    "J12:https://raw.githubusercontent.com/smogon/pokemon-showdown/master/data/moves.ts"
+  ]
+]

@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "cobblespire",
+  "version": "${version}",
+  "name": "CobbleSpire",
+  "description": "Standalone cooperative three-act Pokemon roguelike for COBBLEVERSE.",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "dev.cobblespire.SpireMod"
+    ],
+    "client": [
+      "dev.cobblespire.client.SpireClient"
+    ]
+  },
+  "license": "MIT",
+  "depends": {
+    "fabricloader": ">=0.17.2",
+    "minecraft": "1.21.1",
+    "java": ">=21",
+    "fabric-api": "*",
+    "fabric-language-kotlin": "*",
+    "cobblemon": ">=1.7.3 <1.8"
+  }
+}
