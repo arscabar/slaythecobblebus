@@ -1,0 +1,16 @@
+{
+  "stage": "foundation-and-pure-kernel",
+  "minecraft": "1.21.1",
+  "cobblemon": "1.7.3+1.21.1",
+  "fabricLoader": "0.18.4",
+  "registeredSpecies": 1025,
+  "registeredForms": 1481,
+  "baseCharactersVerified": 50,
+  "enemyMoveReferencesVerified": 97,
+  "leagueInstalled": false,
+  "synergyInstalled": false,
+  "staticRuleChecks": 25,
+  "junitTests": 19,
+  "clientVisualTested": false,
+  "liveAdventureBattleImplemented": false
+}

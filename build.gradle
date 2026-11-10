@@ -24,3 +24,5 @@ test { useJUnitPlatform() }
 processResources { inputs.property 'version', project.version; filesMatching('fabric.mod.json') { expand version: project.version } }
 
 tasks.withType(Jar).configureEach { preserveFileTimestamps = false; reproducibleFileOrder = true }
+
+processResources { from("design/data") { include "*.json"; into "assets/cobblespire/design" } }

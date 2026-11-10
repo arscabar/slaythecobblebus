@@ -8,7 +8,7 @@ COBBLEVERSE 1.7.42 / Minecraft 1.21.1 / Fabric / Cobblemon 1.7.3용 독립 협�
 
 - [x] 빈 원격 저장소 복제와 독립 Gradle/Fabric 프로젝트 초기화
 - [x] 원본 GDD와 JSON 정의 보존
-- [ ] 설치된 모든 애드온의 포켓몬·폼·기술 레지스트리 조사 및 호환성 보고
+- [x] 설치된 모든 애드온의 포켓몬·폼·기술 레지스트리 조사 및 호환성 보고
 - [ ] 독립 기술 덱·에너지·협동 페이즈 전투와 검증
 - [ ] 3막 지도·보상·상점·휴식·영입·보스·모험 도구
 - [ ] 독립 설치 및 기존 애드온과의 공존 검증
@@ -20,3 +20,9 @@ COBBLEVERSE 1.7.42 / Minecraft 1.21.1 / Fabric / Cobblemon 1.7.3용 독립 협�
 `design/GDD-v4.1.md`와 `design/data`가 제공된 기획의 보존 사본입니다. `design/Settings.json`, `LevelProgression.json`, `MoveUpgrades.json`은 원본 엑셀의 셀 주소를 보존한 읽기 전용 발췌입니다. 최신 규칙 우선순위는 GDD v4.1과 정규 JSON입니다.
 
 빌드: JDK 21에서 `./gradlew test build`.
+
+## 현재 검증된 범위
+
+독립 서버 로딩에서 **1,025종·1,481폼**, 기본 캐릭터 50종, 적 기술 참조 97건의 등록과 배움표를 확인했습니다. CobbleLeague와 CobbleSynergy를 제외하고 로딩했습니다.
+
+F10의 현재 화면은 개발용 전체 레지스트리 조회입니다. 실제 모험 전투·지도·보상은 아직 연결하지 않았습니다. 순수 전투 규칙 초안은 교체/덱 보존/상태/승패/부활/HP 예산/진행 점수를 포함하며 JUnit으로 별도 검사합니다. 이는 원본 기술 효과 연동과 실제 게임 화면 검증을 대신하지 않습니다. 상세 단계 결과: `docs/validation/stage1.json`.
