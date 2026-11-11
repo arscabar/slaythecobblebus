@@ -20,10 +20,10 @@
 |---|---|---|---|
 | Q-DISCOVERY-01 | 이끼 낀 블록 제단 위 낡은 몬스터볼을 포켓몬이 살핀다 | 기준 샘플; 발견과 불확실성 | [event_pokeball_concept.png](art_reference/event_pokeball_concept.png) |
 | Q-DISCOVERY-02 | 숲길의 오래된 상자와 주변 발자국을 바라보는 포켓몬, 상자 내부는 보이지 않음 | 주인을 알 수 없는 보급품 | [event_lost_supplies.png](art_reference/events/event_lost_supplies.png) |
-| Q-DISCOVERY-03 | 절반쯤 묻힌 돌 문과 미세한 빛을 가까이 살피는 포켓몬 | 숨겨진 장소의 호기심 | 시안 대기 (`art_reference/README.md` 명세 수록) |
-| Q-DISCOVERY-04 | 갈림길의 낡은 표지판과 서로 다른 두 통로를 보는 포켓몬 | 어디로 갈지 고민하는 순간; 글자 없는 표지판 | 시안 대기 (`art_reference/README.md` 명세 수록) |
-| Q-DISCOVERY-05 | 어두운 블록형 동굴에서 희미한 빛이 나는 돌과 조심스러운 포켓몬 | 신비한 발견, 실제 아이템 여부 미정 | 시안 대기 (`art_reference/README.md` 명세 수록) |
-| Q-DISCOVERY-06 | 버려진 야영지의 비어 있는 가방과 꺼져가는 등불 | 전 주인의 흔적, 고요한 의문 | 시안 대기 (`art_reference/README.md` 명세 수록) |
+| Q-DISCOVERY-03 | 절반쯤 묻힌 돌 문과 미세한 빛을 가까이 살피는 포켓몬 | 숨겨진 장소의 호기심 | [q_discovery_03.png](art_reference/events/q_discovery_03.png) |
+| Q-DISCOVERY-04 | 갈림길의 낡은 표지판과 서로 다른 두 통로를 보는 포켓몬 | 어디로 갈지 고민하는 순간; 글자 없는 표지판 | [q_discovery_04.png](art_reference/events/q_discovery_04.png) |
+| Q-DISCOVERY-05 | 어두운 블록형 동굴에서 희미한 빛이 나는 돌과 조심스러운 포켓몬 | 신비한 발견, 실제 아이템 여부 미정 | [q_discovery_05.png](art_reference/events/q_discovery_05.png) |
+| Q-DISCOVERY-06 | 버려진 야영지의 비어 있는 가방과 꺼져가는 등불 | 전 주인의 흔적, 고요한 의문 | [q_discovery_06.png](art_reference/events/q_discovery_06.png) |
 
 ## 물음표 사건: 위험·대가·보상
 
@@ -32,10 +32,10 @@
 | 제안 ID | 장면과 구도 | 감정·상황 | 생성된 시안 파일 |
 |---|---|---|---|
 | Q-HAZARD-01 | 좁은 블록 계곡 위 갈라진 바위를 올려다보는 포켓몬 | 낙석 직전, 긴장; `EVENT_HAZARD_FALL_ROCK` 유형 참고 | [event_rockfall.png](art_reference/events/event_rockfall.png) |
-| Q-HAZARD-02 | 깊은 틈과 흔들리는 나무다리 앞에 멈춘 포켓몬 | 위험한 길을 건널지 고민 | 시안 대기 (`art_reference/README.md` 명세 수록) |
-| Q-HAZARD-03 | 가시 덤불 너머 희미한 빛을 바라보는 포켓몬 | 대가가 있을지 모를 접근, 상처 묘사 없음 | 시안 대기 (`art_reference/README.md` 명세 수록) |
+| Q-HAZARD-02 | 깊은 틈과 흔들리는 나무다리 앞에 멈춘 포켓몬 | 위험한 길을 건널지 고민 | [q_hazard_02.png](art_reference/events/q_hazard_02.png) |
+| Q-HAZARD-03 | 가시 덤불 너머 희미한 빛을 바라보는 포켓몬 | 대가가 있을지 모를 접근, 상처 묘사 없음 | [q_hazard_03.png](art_reference/events/q_hazard_03.png) |
 | Q-HAZARD-04 | 무너지는 석조 문 앞에서 뒤로 물러선 포켓몬 | 돌이 떨어질 듯한 순간, 피해 확정 아님 | 시안 대기 (`art_reference/README.md` 명세 수록) |
-| Q-REWARD-01 | 먼지 쌓인 상자 곁에 흩어진 동전과 조심하는 포켓몬 | 금화 가능성을 시각적으로 암시; 액수·실제 보상 미정 | 시안 대기 (`art_reference/README.md` 명세 수록) |
+| Q-REWARD-01 | 먼지 쌓인 상자 곁에 흩어진 동전과 조심하는 포켓몬 | 금화 가능성을 시각적으로 암시; 액수·실제 보상 미정 | [q_reward_01.png](art_reference/events/q_reward_01.png) |
 | Q-REWARD-02 | 수풀에 가려진 닫힌 보물볼과 주변을 살피는 포켓몬 | 보물을 열지 고민; 내용물 비공개 | 시안 대기 (`art_reference/README.md` 명세 수록) |
 | Q-REWARD-03 | 제단 위 천으로 덮인 작은 물건과 호기심 어린 포켓몬 | 알 수 없는 도구; 특정 유물·효과 확정 금지 | 시안 대기 (`art_reference/README.md` 명세 수록) |
 
@@ -76,21 +76,21 @@
 | FLOW-PARTY-01 | 시작 파티 준비 | 세 포켓몬이 같은 길을 바라봄; 실제 종은 선택 결과에 맞춰야 하므로 고정 그림 사용 여부 검토 | 시안 대기 (`art_reference/README.md` 명세 수록) |
 | FLOW-ACT1-01 | 1막 도입 | 숲과 오래된 시설이 보이는 길 앞의 작은 포켓몬 | [story_act1.png](art_reference/events/story_act1.png) |
 | FLOW-ACT2-M-01 | 2막 마그마 경로 도입 | 붉은 화산 능선과 블록형 바위 앞의 포켓몬 | [story_act2_m.png](art_reference/events/story_act2_m.png) |
-| FLOW-ACT2-A-01 | 2막 아쿠아 경로 도입 | 물가와 잠긴 블록 유적을 바라보는 포켓몬 | 시안 대기 (`art_reference/README.md` 명세 수록) |
-| FLOW-ACT3-01 | 3막 도입 | 차가운 유적과 먼 하늘의 빛을 보는 포켓몬 | 시안 대기 (`art_reference/README.md` 명세 수록) |
+| FLOW-ACT2-A-01 | 2막 아쿠아 경로 도입 | 물가와 잠긴 블록 유적을 바라보는 포켓몬 | [story_act2_a.png](art_reference/events/story_act2_a.png) |
+| FLOW-ACT3-01 | 3막 도입 | 차가운 유적과 먼 하늘의 빛을 보는 포켓몬 | [story_act3.png](art_reference/events/story_act3.png) |
 | FAC-SHOP-01 | 상점 진입 | 여행 물건이 진열된 블록형 가판대와 물건을 살피는 포켓몬 | [facility_shop.png](art_reference/events/facility_shop.png) |
 | FAC-SHOP-02 | 기술 제거 선택 | 작업대 위 빈 카드 모양 소품을 살피는 포켓몬; 글자·구체 효과 없음 | 시안 대기 (`art_reference/README.md` 명세 수록) |
 | FAC-REST-01 | 휴식처 진입·회복 선택 | 블록형 모닥불 곁에 모인 포켓몬, 편안하고 따뜻한 빛 | [facility_rest.png](art_reference/events/facility_rest.png) |
 | FAC-REST-02 | 휴식처 기술 강화 선택 | 안전한 야영지 근처 연습 표적을 바라보는 포켓몬 | 시안 대기 (`art_reference/README.md` 명세 수록) |
-| FAC-TREASURE-01 | 보물볼 진입 | 제단의 닫힌 보물볼, 주변을 살피는 포켓몬; 내용물 감춤 | 시안 대기 (`art_reference/README.md` 명세 수록) |
+| FAC-TREASURE-01 | 보물볼 진입 | 제단의 닫힌 보물볼, 주변을 살피는 포켓몬; 내용물 감춤 | [facility_treasure.png](art_reference/events/facility_treasure.png) |
 | FAC-TREASURE-02 | 보물 선택 포기 | 닫힌 보물볼을 뒤로하고 떠나는 실루엣; 실제 분기 필요 시만 | 시안 대기 (`art_reference/README.md` 명세 수록) |
 | REWARD-BATTLE-01 | 전투 후 보상 | 정돈된 여행 물품과 쉬고 있는 포켓몬; 특정 보상 확정 금지 | 시안 대기 (`art_reference/README.md` 명세 수록) |
 | REWARD-MOVE-01 | 기술 보상 선택 | 빛나는 무늬가 새겨진 훈련 장소와 포켓몬; 문자·카드 텍스트 금지 | 시안 대기 (`art_reference/README.md` 명세 수록) |
 | REWARD-CONSUMABLE-01 | 소모품 보상 | 여행 가방 옆에 놓인 일반적인 빈 용기; 실제 아이템 형상은 기획 후 | 시안 대기 (`art_reference/README.md` 명세 수록) |
 | FLOW-BOSS-INTRO-01 | 보스 노드 진입 | 해당 막의 유적에서 보스 실루엣이 등장; 종·수는 조우 ID에 맞춤 | 시안 대기 (`art_reference/README.md` 명세 수록) |
-| FLOW-ACT-CLEAR-01 | 막 완료 | 새 길을 바라보는 포켓몬 뒷모습, 지나온 막의 환경 | 시안 대기 (`art_reference/README.md` 명세 수록) |
-| FLOW-VICTORY-01 | 최종 승리 | 새벽 풍경을 바라보는 포켓몬, 성취감과 여운 | 시안 대기 (`art_reference/README.md` 명세 수록) |
-| FLOW-DEFEAT-01 | 패배·종료 | 안전한 길을 따라 돌아가는 포켓몬, 고요하고 비폭력적인 마무리 | 시안 대기 (`art_reference/README.md` 명세 수록) |
+| FLOW-ACT-CLEAR-01 | 막 완료 | 새 길을 바라보는 포켓몬 뒷모습, 지나온 막의 환경 | [result_act_clear.png](art_reference/events/result_act_clear.png) |
+| FLOW-VICTORY-01 | 최종 승리 | 새벽 풍경을 바라보는 포켓몬, 성취감과 여운 | [result_run_clear.png](art_reference/events/result_run_clear.png) |
+| FLOW-DEFEAT-01 | 패배·종료 | 안전한 길을 따라 돌아가는 포켓몬, 고요하고 비폭력적인 마무리 | [result_run_defeat.png](art_reference/events/result_run_defeat.png) |
 
 ## 기술 이벤트와 장면 삽화의 관계
 

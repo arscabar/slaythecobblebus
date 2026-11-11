@@ -50,8 +50,8 @@
 |---|---|---|---|
 | STORY-ACT1 · 1막 시작 | 작은 포켓몬 실루엣 앞에 오래된 출입구와 갈라진 길 | 숲과 블록형 폐허, 호기심·첫 탐험 | [story_act1.png](art_reference/events/story_act1.png) |
 | STORY-ACT2-M · 2막 마그마 경로 시작 | 붉게 빛나는 바위 너머 먼 산을 바라보는 포켓몬 | 화산 암벽과 희미한 연기, 뜨거운 위험 | [story_act2_m.png](art_reference/events/story_act2_m.png) |
-| STORY-ACT2-A · 2막 아쿠아 경로 시작 | 물가의 포켓몬이 잠긴 유적을 발견 | 절벽·물·침수된 블록, 신비와 탐색 | 대기 |
-| STORY-ACT3 · 3막 시작 | 포켓몬이 낯선 석조 장치와 하늘의 빛을 올려다봄 | 차가운 폐허와 보랏빛 하늘, 고조되는 긴장 | 대기 |
+| STORY-ACT2-A · 2막 아쿠아 경로 시작 | 물가의 포켓몬이 잠긴 유적을 발견 | 절벽·물·침수된 블록, 신비와 탐색 | [story_act2_a.png](art_reference/events/story_act2_a.png) |
+| STORY-ACT3 · 3막 시작 | 포켓몬이 낯선 석조 장치와 하늘의 빛을 올려다봄 | 차가운 폐허와 보랏빛 하늘, 고조되는 긴장 | [story_act3.png](art_reference/events/story_act3.png) |
 | EVENT-MYSTERY-BALL · 물음표 | 샘플처럼 포켓몬이 수상한 몬스터볼을 발견 | 이끼 낀 제단과 그늘, 호기심과 불확실성 | [event_pokeball_concept.png](art_reference/event_pokeball_concept.png) |
 | EVENT-WILD-MEETING · 물음표/영입 후보 | 길을 막은 야생 포켓몬과 탐험 파티가 서로 살핌 | 숲길 또는 동굴 입구, 경계하되 따뜻함 | [event_wild_meeting.png](art_reference/events/event_wild_meeting.png) |
 | EVENT-LOST-SUPPLIES · 물음표 후보 | 낡은 상자와 근처의 포켓몬 발자국, 상자 안은 가림 | 버려진 블록형 야영지, 발견과 경계 | [event_lost_supplies.png](art_reference/events/event_lost_supplies.png) |
@@ -60,10 +60,10 @@
 | EVENT-ENCOUNTER · 전투 발생형 물음표 후보 | 정체를 알 수 없는 포켓몬의 눈과 대치하는 실루엣 | 가려진 숲·동굴, 위험 예고. 적 종은 기획 확정 후 | [event_encounter.png](art_reference/events/event_encounter.png) |
 | FACILITY-SHOP · 상점 | 포켓몬이 정리된 여행 물품과 교환대를 살핌 | 블록형 천막·선반, 친근한 탐험 쉼터. 가격·사람 제외 | [facility_shop.png](art_reference/events/facility_shop.png) |
 | FACILITY-REST · 휴식 | 포켓몬이 안전한 모닥불 곁에서 쉬는 장면 | 블록형 야영지, 따뜻하고 평온함. 실제 회복량 암시 금지 | [facility_rest.png](art_reference/events/facility_rest.png) |
-| FACILITY-TREASURE · 보물볼 | 손이 닿기 직전의 닫힌 보물볼과 주변 단서 | 작은 제단, 기대와 불확실성. 특정 도구 노출 금지 | 대기 |
-| RESULT-ACT-CLEAR · 막 완료 | 전투 후 새 길을 바라보는 포켓몬의 뒷모습 | 해당 막 배경, 안도와 다음 여정 | 대기 |
-| RESULT-RUN-CLEAR · 최종 완료 | 높은 곳에서 지나온 지역을 바라보는 포켓몬 | 새벽빛, 성취와 희망 | 대기 |
-| RESULT-RUN-DEFEAT · 패배 | 지친 포켓몬이 안전한 장소로 돌아가는 뒷모습 | 저녁빛과 조용한 분위기, 상해·고어 없이 여운 | 대기 |
+| FACILITY-TREASURE · 보물볼 | 손이 닿기 직전의 닫힌 보물볼과 주변 단서 | 작은 제단, 기대와 불확실성. 특정 도구 노출 금지 | [facility_treasure.png](art_reference/events/facility_treasure.png) |
+| RESULT-ACT-CLEAR · 막 완료 | 전투 후 새 길을 바라보는 포켓몬의 뒷모습 | 해당 막 배경, 안도와 다음 여정 | [result_act_clear.png](art_reference/events/result_act_clear.png) |
+| RESULT-RUN-CLEAR · 최종 완료 | 높은 곳에서 지나온 지역을 바라보는 포켓몬 | 새벽빛, 성취와 희망 | [result_run_clear.png](art_reference/events/result_run_clear.png) |
+| RESULT-RUN-DEFEAT · 패배 | 지친 포켓몬이 안전한 장소로 돌아가는 뒷모습 | 저녁빛과 조용한 분위기, 상해·고어 없이 여운 | [result_run_defeat.png](art_reference/events/result_run_defeat.png) |
 
 선택 결과에 별도 이미지가 필요한지는 실제 이야기 분기 확정 후 결정한다. 결과를 미리 단정하는 전후 장면을 임의로 제작하지 않는다.
 
