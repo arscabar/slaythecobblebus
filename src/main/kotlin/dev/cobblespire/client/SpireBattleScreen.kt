@@ -109,19 +109,22 @@ class SpireBattleScreen(data:JsonObject):SpirePane(data){
             SpireSkin.panel(g,x,py+29,ew,76,if(target==i)SpireSkin.teal else SpireSkin.gold)
             SpireWidgets.hp(g,e,x+4,py+47,ew-8)
             text(g,short("${e.number("hp")}/${e.number("maxHp")} HP",ew-8),x+4,py+52)
-            val attack=e.text("intentType");val ink=SpireCardArt.tint(JsonObject().apply{addProperty("type",attack)})
-            text(g,short("${DamageLabels.type(attack)} · ${SpireWidgets.move(e.text("intent"))}",ew-8),x+4,py+64,ink)
-            val detail=if(e.number("intentPower")<=0)"보조 기술 · 직접 피해 없음"else "내게 ${DamageLabels.damage(e)} 피해 예상"
-            text(g,short(detail,ew-8),x+4,py+76,0xEAD6B5)
-            text(g,short(if(e.number("intentPower")>0)DamageLabels.matchup(DamageLabels.multiplier(e))+" · 명중 ${e.number("intentAccuracy")}%"else "상태 변화 / 회복",ew-8),x+4,py+88,0xBDD3D1)
+            val attack=e.text("intentType");val role=CardRole.parse(e.text("intentRole"))
+            val ink=if(role==CardRole.ATTACK)SpireCardArt.tint(JsonObject().apply{addProperty("type",attack)})else role.color
+            val badge=role.label+if(role==CardRole.ATTACK)" · "+DamageLabels.type(attack)else ""
+            text(g,short("$badge · ${SpireWidgets.move(e.text("intent"))}",ew-8),x+4,py+64,ink)
+            text(g,short(if(role==CardRole.ATTACK)"내게 ${DamageLabels.damage(e)} 피해 예상"else e.text("intentEffect"),ew-8),x+4,py+76,0xEAD6B5)
+            text(g,short(if(role==CardRole.ATTACK)DamageLabels.matchup(DamageLabels.multiplier(e))+" · 명중 ${e.number("intentAccuracy")}%"else "대상: "+if(e.get("selfTarget")?.asBoolean==true)"자신"else "내 포켓몬",ew-8),x+4,py+88,0xBDD3D1)
+
 
         }
         val hits=data.array("damageEvents")?.toList()?.takeLast(2).orEmpty()
         if(hits.isNotEmpty()){
             val feedW=(pw/2-30).coerceAtMost(290);SpireSkin.panel(g,px+12,py+53,feedW,31)
             hits.forEachIndexed{i,v->val e=v.asJsonObject
-                val result=if(e.get("miss")?.asBoolean==true){if(DamageLabels.multiplier(e)==0.0)"무효"else "빗나감/차단"}else if(e.number("amount")>0)"-${e.number("amount")} HP"else "상태 효과"
-                text(g,short((if(e.get("incoming")?.asBoolean==true)"실제 받음 "else "실제 줌 ")+"${DamageLabels.type(e.text("type"))} $result · ${e.text("target")}",feedW-10),px+17,py+58+i*12,SpireCardArt.tint(e))
+                val result=if(e.get("miss")?.asBoolean==true){if(DamageLabels.multiplier(e)==0.0)"무효"else "빗나감/차단"}else if(e.number("amount")>0)"-${e.number("amount")} HP"else "효과 적용"
+                val role=CardRole.parse(e.text("role"));val label=if(role==CardRole.ATTACK)DamageLabels.type(e.text("type"))else role.label
+                text(g,short((if(e.get("incoming")?.asBoolean==true)"실제 받음 "else "실제 줌 ")+"${label} $result · ${e.text("target")}",feedW-10),px+17,py+58+i*12,if(role==CardRole.ATTACK)SpireCardArt.tint(e)else role.color)
             }
         }
         val ay=py+l.handY.toInt()-31
@@ -150,10 +153,12 @@ class SpireBattleScreen(data:JsonObject):SpirePane(data){
     override fun render(g:GuiGraphics,mx:Int,my:Int,delta:Float){
         super.render(g,mx,my,delta)
         hand().getOrNull(hover)?.let{c->if(!busy()){
-            val desc=if(c.get("trainer")?.asBoolean==true)TrainerCards.description(c.text("move"))else Moves.getByName(c.text("move"))?.description?.string.orEmpty()
             val preview=DamageLabels.preview(c,target)
-            val forecast=if(c.number("power")<=0)DamageLabels.headline(c,preview)else preview?.let{"${it.text("targetName")}: ${DamageLabels.headline(c,it)}\n${DamageLabels.matchup(DamageLabels.multiplier(it))} · 명중 ${it.number("accuracy")}%\n명중 시 예상 HP 감소 · 급소 제외"}.orEmpty()
-            g.renderTooltip(font,font.split(Component.literal(SpireWidgets.move(c.text("move"))+" · "+(if(c.get("trainer")?.asBoolean==true)"지원"else DamageLabels.type(c.text("type")))+" · 에너지 ${c.number("cost")}\n기본 위력 ${c.number("power")}\n"+forecast+"\n"+desc+"\n"+(if(data.number("energy")<c.number("cost"))"에너지 부족\n"else "")+"턴 종료 시 버림 · 보존 카드는 유지"),(pw-24).coerceAtMost(280)),mx,my)
+            val lines=CardTooltip.lines(c,SpireWidgets.move(c.text("move")),SpireCardArt.description(c),
+                if(CardSemantics.role(c)==CardRole.ATTACK)DamageLabels.type(c.text("type"))else "",preview,
+                if(data.number("energy")<c.number("cost"))"에너지 부족"else "")
+            g.renderTooltip(font,font.split(Component.literal(lines.joinToString("\n")),(pw-24).coerceAtMost(280)),mx,my)
+
 
         }}
     }

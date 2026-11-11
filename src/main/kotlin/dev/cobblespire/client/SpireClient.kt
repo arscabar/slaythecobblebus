@@ -21,7 +21,7 @@ class SpireClient:ClientModInitializer {
         ClientPlayNetworking.registerGlobalReceiver(SpirePayload.TYPE){payload,ctx->ctx.client().execute{
             val d=JsonParser.parseString(payload.json).asJsonObject
             if(ctx.client().player==null)return@execute
-            if(d.number("protocol")!=5){ctx.client().player?.displayClientMessage(Component.literal("서버와 클라이언트의 CobbleSpire 버전을 맞춰주세요."),false);return@execute}
+            if(d.number("protocol")!=6){ctx.client().player?.displayClientMessage(Component.literal("서버와 클라이언트의 CobbleSpire 버전을 맞춰주세요."),false);return@execute}
             when(d.text("kind")){
                 "error"->{(ctx.client().screen as? SpirePane)?.showError(d.text("message"))?:ctx.client().player?.displayClientMessage(Component.literal(d.text("message")),false)}
                 "catalog"->ctx.client().setScreen(RegistryScreen(d))
@@ -37,5 +37,5 @@ class SpireClient:ClientModInitializer {
             }
         }}
     }
-    companion object {fun send(action:String,body:JsonObject.()->Unit={}){ClientPlayNetworking.send(SpirePayload(JsonObject().apply{addProperty("action",action);addProperty("protocol",5);body()}.toString()))}}
+    companion object {fun send(action:String,body:JsonObject.()->Unit={}){ClientPlayNetworking.send(SpirePayload(JsonObject().apply{addProperty("action",action);addProperty("protocol",6);body()}.toString()))}}
 }

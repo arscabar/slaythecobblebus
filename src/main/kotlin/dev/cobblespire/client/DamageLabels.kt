@@ -12,7 +12,7 @@ object DamageLabels {
     fun damage(p:JsonObject)="${p.number("minDamage")}~${p.number("maxDamage") }"
     fun preview(c:JsonObject,target:Int)=c.array("previews")?.toList()?.getOrNull(target)?.asJsonObject
     fun headline(c:JsonObject,p:JsonObject?):String=when{
-        c.number("power")<=0->if(c.number("draw")>0)"${c.number("draw")}장 뽑기"else "직접 피해 없음"
+        CardSemantics.role(c)!=CardRole.ATTACK->c.text("effectSummary").ifBlank{if(c.number("draw")>0)"카드 ${c.number("draw")}장 뽑기"else "효과 적용"}
         p==null->"위력 ${c.number("power")}"
         multiplier(p)==0.0->"무효 · 피해 0"
         p.number("maxDamage")==0->"차단 · 피해 0"

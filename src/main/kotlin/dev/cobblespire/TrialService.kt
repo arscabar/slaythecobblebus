@@ -144,9 +144,16 @@ class TrialService(private val server:MinecraftServer,val catalogue:PokemonCatal
         add("statuses",JsonArray().also{v->a.body.statuses.values.forEach{v.add(it.id+if(it.remaining>0)" ${it.remaining}" else "")}})
     }
     private fun cardInfo(m:MoveInstance,fx:NativeEffects)=JsonObject().apply{
-        addProperty("instance",m.uid);addProperty("move",m.move.id);addProperty("cost",fx.cost(m));addProperty("type",m.move.type)
+        addProperty("instance",m.uid);addProperty("move",m.move.id);addProperty("cost",fx.cost(m))
         addProperty("trainer",m.move.trainer);addProperty("exhaust",m.move.exhaust);addProperty("retain",m.retain);addProperty("upgraded",m.upgraded)
-        addProperty("draw",fx.drawCount(m));addProperty("accuracy",m.move.accuracy);addProperty("selfTarget",m.move.selfTarget);addProperty("power",m.move.power);addProperty("category",if(m.move.trainer)"Trainer"else MoveCompatibility.specs[m.move.id]?.text("category").orEmpty())
+        val role=CardSemantics.role(m.move);addProperty("role",role.name)
+        addProperty("draw",fx.drawCount(m));addProperty("selfTarget",m.move.selfTarget);addProperty("targetAll",m.move.targetAll)
+        addProperty("effectSummary",CardSemantics.summary(m.move,fx.drawCount(m)))
+        if(role==CardRole.ATTACK){
+            addProperty("type",m.move.type);addProperty("accuracy",m.move.accuracy);addProperty("power",m.move.power)
+            addProperty("category",MoveCompatibility.specs[m.move.id]?.text("category").orEmpty())
+        }
+
     }
     fun snapshot(id:UUID):JsonObject?=sessions[id]?.let{buildSnapshot(it,false)}
     private fun send(p:ServerPlayer,s:Session,open:Boolean,fresh:Boolean=false){SpireMod.send(p,buildSnapshot(s,open).apply{addProperty("fresh",fresh);add("arena",arena.sync(p,this))})}
@@ -156,14 +163,20 @@ class TrialService(private val server:MinecraftServer,val catalogue:PokemonCatal
             addProperty("progress",s.points);addProperty("points",s.points);addProperty("energy",player.energy);addProperty("active",player.activeIndex);addProperty("forced",player.forcedSwitch);addProperty("switchUsed",player.normalSwitchUsed);addProperty("battleNumber",s.battleNumber)
             add("party",JsonArray().also{a->s.party.forEach{a.add(card(it))}})
             add("enemies",JsonArray().also{a->b.enemies.forEach{enemy->val c=card(s.actors.getValue(enemy.uid));s.choices[enemy.uid]?.let{choice->
-                val move=choice.move;c.addProperty("intent",move.id);c.addProperty("intentType",move.type);c.addProperty("intentPower",move.power)
-                c.addProperty("intentAccuracy",s.effects.accuracy(enemy,if(move.selfTarget)enemy else player.active,move))
-                val damage=s.effects.estimate(enemy,player.active,move,spread=move.targetAll&&b.players.count{it.active.alive}>1)
-                c.addProperty("minDamage",damage.first.coerceAtMost(player.active.hp));c.addProperty("maxDamage",damage.second.coerceAtMost(player.active.hp))
-                c.addProperty("multiplier",MoveCompatibility.multiplier(move.type,player.active.types));c.addProperty("selfTarget",move.selfTarget)
+                val move=choice.move;val role=CardSemantics.role(move)
+                c.addProperty("intent",move.id);c.addProperty("intentRole",role.name);c.addProperty("intentEffect",CardSemantics.summary(move))
+                c.addProperty("selfTarget",move.selfTarget);c.addProperty("targetAll",move.targetAll)
+                if(role==CardRole.ATTACK){
+                    c.addProperty("intentType",move.type);c.addProperty("intentPower",move.power)
+                    c.addProperty("intentAccuracy",s.effects.accuracy(enemy,player.active,move))
+                    val damage=s.effects.estimate(enemy,player.active,move,spread=move.targetAll&&b.players.count{it.active.alive}>1)
+                    c.addProperty("minDamage",damage.first.coerceAtMost(player.active.hp));c.addProperty("maxDamage",damage.second.coerceAtMost(player.active.hp))
+                    c.addProperty("multiplier",MoveCompatibility.multiplier(move.type,player.active.types))
+                }
+
             };a.add(c)}})
             add("damageEvents",JsonArray().also{a->b.events.withIndex().filter{it.value.name in setOf("MOVE_HIT","AFTER_DAMAGE_TAKEN","MOVE_MISS")}.takeLast(8).forEach{(index,e)->a.add(JsonObject().apply{
-                addProperty("incoming",e.target.startsWith("player:"));addProperty("seq",index+1);addProperty("actor",s.actors[e.actor]?.name.orEmpty());addProperty("target",s.actors[e.target]?.name.orEmpty());addProperty("amount",e.amount)
+                addProperty("role",CardSemantics.role(e.moveId).name);addProperty("incoming",e.target.startsWith("player:"));addProperty("seq",index+1);addProperty("actor",s.actors[e.actor]?.name.orEmpty());addProperty("target",s.actors[e.target]?.name.orEmpty());addProperty("amount",e.amount)
                 addProperty("move",e.moveId);addProperty("type",e.moveType);addProperty("multiplier",e.multiplier);addProperty("miss",e.name=="MOVE_MISS")
             })}})
             s.loot?.let{loot->add("loot",JsonObject().apply{
@@ -174,7 +187,7 @@ class TrialService(private val server:MinecraftServer,val catalogue:PokemonCatal
             val deck=player.active.deck!!
             addProperty("deckOwner",player.active.uid);addProperty("handLimit",deck.handLimit);addProperty("motionSequence",deck.sequence)
             add("hand",JsonArray().also{a->deck.hand.forEach{m->a.add(cardInfo(m,s.effects).apply{
-                add("previews",JsonArray().also{out->b.enemies.forEach{foe->
+                if(CardSemantics.role(m.move)==CardRole.ATTACK)add("previews",JsonArray().also{out->b.enemies.forEach{foe->
                     val damage=s.effects.estimate(player.active,foe,m.move,m.upgraded,m.move.targetAll&&b.enemies.count{it.alive}>1)
                     out.add(JsonObject().apply{addProperty("accuracy",s.effects.accuracy(player.active,if(m.move.selfTarget)player.active else foe,m.move));addProperty("targetName",s.actors[if(m.move.selfTarget)player.active.uid else foe.uid]?.name.orEmpty());addProperty("minDamage",damage.first.coerceAtMost(foe.hp));addProperty("maxDamage",damage.second.coerceAtMost(foe.hp));addProperty("multiplier",MoveCompatibility.multiplier(m.move.type,foe.types))})
                 }})

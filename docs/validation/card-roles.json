@@ -1,0 +1,20 @@
+{
+  "version": "0.5.1-dev",
+  "protocol": 6,
+  "unitTests": 59,
+  "nativeChecks": 32,
+  "jarSha256": "ddd0ea9aa10ac2953c6f58d90caa58591c7c63b02635cf71d05807ffdd9e2ef0",
+  "visualChecks": [
+    "Attack orange, defence blue, support purple shown in the same real game hand",
+    "Water and ice attack type chips independent from orange card body",
+    "Withdraw and Iron Defense show defensive effects instead of attack numbers",
+    "Encourage tooltip only shows support, self, draw two, exhaust; no Normal/power/accuracy/opponent/matchup",
+    "Nonattack enemy Tail Whip is support with defence -1 effect instead of Normal attack metadata"
+  ],
+  "screenshots": [
+    "card-roles.png",
+    "encourage-tooltip.png",
+    "defence-tooltip.png"
+  ],
+  "productionInstalled": false
+}

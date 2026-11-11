@@ -1,0 +1,162 @@
+[
+  {
+    "test": "independent-without-league-or-synergy",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "baseline-has-nonempty-real-party-PC-inventory",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "native-lv50-IV31-EV0-neutral-charizard-hp",
+    "passed": true,
+    "detail": "HP 153"
+  },
+  {
+    "test": "progress-does-not-increase-combat-stats",
+    "passed": true,
+    "detail": "Progress5 HP 153"
+  },
+  {
+    "test": "registry-expansion-beyond-fixed-50",
+    "passed": true,
+    "detail": "cobblemon:abra"
+  },
+  {
+    "test": "world-arena-teleports-body-to-side-balcony",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "only-one-active-and-encounter-enemies-spawn-in-world",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "world-presentation-is-uncatchable-unowned-and-invulnerable",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "actual-party-has-three-disjoint-type-pools",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "actual-ui-snapshot-five-card-hand-three-energy-visible-intent",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "hand-role-controls-attack-only-fields",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "enemy-nonattacks-expose-effects-instead-of-damage",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "encourage-wire-has-no-attack-metadata",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "starter-learnset-includes-test-flamethrower",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "resolved-hit-carries-real-type-and-actual-HP-loss",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "native-move-resolves-to-real-server-victory",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "duplicate-move-cannot-charge-or-reward-twice",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "victory-snapshot-exposes-three-server-owned-loot-candidates",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "next-is-blocked-until-reward-is-settled",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "claim-adds-one-card-to-designated-run-deck",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "duplicate-claim-cannot-add-second-card",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "next-battle-deals-new-hand-and-new-intents",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "enemy-entry-ability-does-not-affect-benched-Pokemon",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "prior-battle-packet-cannot-affect-next-battle",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "enemy-phase-resolves-and-refreshes-round-energy-and-intents",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "actual-normal-switch-updates-active-party-and-charges-once",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "closing-and-reopening-does-not-replace-session",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "real-party-PC-and-inventory-preserved",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "explicit-quit-discards-memory-only-session",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "quit-restores-original-dimension-and-position",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "quit-removes-world-presentation-entities",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "test": "completed",
+    "passed": true,
+    "detail": ""
+  }
+]

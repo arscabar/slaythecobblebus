@@ -76,8 +76,11 @@ class SpireSmoke:ModInitializer {
         @Suppress("UNCHECKED_CAST") val sessions=field(service,"sessions") as MutableMap<UUID,Any>
         val session=sessions.getValue(p.uuid);val battle=field(session,"battle") as SpireBattle
         val self=battle.players.single().active
-        check("hand-preview-includes-type-power-and-per-target-damage",state.getAsJsonArray("hand").all{it.asJsonObject.has("power")&&it.asJsonObject.getAsJsonArray("previews").size()==1})
-        check("enemy-intent-exposes-type-and-damage-range",state.getAsJsonArray("enemies").all{it.asJsonObject.text("intentType").isNotBlank()&&it.asJsonObject.has("intentAccuracy")})
+        check("hand-role-controls-attack-only-fields",state.getAsJsonArray("hand").all{v->val c=v.asJsonObject;if(c.text("role")=="ATTACK")c.has("power")&&c.getAsJsonArray("previews").size()==1 else !c.has("power")&&!c.has("accuracy")&&!c.has("previews")&&c.text("effectSummary").isNotBlank()})
+        check("enemy-nonattacks-expose-effects-instead-of-damage",state.getAsJsonArray("enemies").all{v->val c=v.asJsonObject;if(c.text("intentRole")=="ATTACK")c.text("intentType").isNotBlank()&&c.has("intentAccuracy") else c.text("intentEffect").isNotBlank()&&!c.has("intentPower")&&!c.has("minDamage")})
+        self.deck!!.hand[0]=MoveInstance(998,TrainerCards.encourage)
+        val support=requireNotNull(service.snapshot(p.uuid)).getAsJsonArray("hand")[0].asJsonObject
+        check("encourage-wire-has-no-attack-metadata",support.text("role")=="SUPPORT"&&support.text("effectSummary")=="카드 2장 뽑기"&&!support.has("type")&&!support.has("power")&&!support.has("accuracy")&&!support.has("previews"))
         check("starter-learnset-includes-test-flamethrower",native.nativeMoves.any{it.name=="flamethrower"})
         self.deck!!.hand[0]=MoveInstance(999,MoveCompatibility.move("flamethrower"));battle.enemies.single().hp=1
         val packet=JsonObject().apply{addProperty("action","move");addProperty("session",state.text("session"));addProperty("battleNumber",state.number("battleNumber"));addProperty("revision",state.number("revision"));addProperty("request","same-test-request");addProperty("handIndex",0);addProperty("instance",999);addProperty("target",0)}
