@@ -1,0 +1,20 @@
+{
+  "version": "0.4.0-dev",
+  "protocol": 4,
+  "junitTests": 53,
+  "nativeChecks": 24,
+  "jarSha256": "ae3412ac83bbcb35c0851e6595a32d3e0b8adbebe3799a621bd2c2be632c05ee",
+  "screenshot": "world-arena.png",
+  "presentation": "actual server PokemonEntity in cobblespire:arena with detached client camera; no GUI Pokemon models or battle backdrop",
+  "visualChecks": [
+    "physical block arena and Pokemon visible from side balcony",
+    "oblique elevated camera displays actual allied Charizard and enemy Rattata",
+    "close tactical screen restores body viewpoint",
+    "card use updates enemy HP 180->107, energy and discard"
+  ],
+  "cameraButtonsAndCompactAngleVisualVerified": false,
+  "additionalVisualBlocker": "Windows automation failed to activate captured window twice; stopped automation",
+  "cooperativeArenaVerified": false,
+  "forcedCrashRecoveryVerified": false,
+  "productionInstalled": false
+}

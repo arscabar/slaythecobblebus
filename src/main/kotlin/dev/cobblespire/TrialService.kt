@@ -21,11 +21,13 @@ class TrialService(private val server:MinecraftServer,val catalogue:PokemonCatal
         val evolution=EvolutionAccess()
         var logFailureReported=false
     }
+    val arena=WorldArena(server)
     private val sessions=mutableMapOf<UUID,Session>()
     private val catalogueActors by lazy{catalogue.entries.filter{it.formName==it.species.standardForm.name}.sortedWith(compareBy<PokemonCatalogue.Entry>{Definitions.characters.none{d->Definitions.speciesId(d.text("species_id"))==it.id}}.thenBy{it.id})}
     private val lastAction=mutableMapOf<UUID,Int>()
     fun inBattle(id:UUID)=sessions[id]?.battle?.phase in setOf(SpireBattlePhase.PLAYER,SpireBattlePhase.ENEMY)
-    fun clear(){sessions.clear();lastAction.clear()}
+    fun clear(){arena.close();sessions.clear();lastAction.clear()}
+    fun leave(p:ServerPlayer){sessions.remove(p.uuid);lastAction.remove(p.uuid);arena.leave(p)}
     fun writeAudit(){val f=FabricLoader.getInstance().gameDir.resolve("logs/cobblespire/move-compatibility.json");Files.createDirectories(f.parent);Files.writeString(f,SpireMod.gson.toJson(bridge.audit()))}
     fun handle(p:ServerPlayer,j:JsonObject){
         require(j.text("action").length<=32)
@@ -38,7 +40,7 @@ class TrialService(private val server:MinecraftServer,val catalogue:PokemonCatal
             "catalog"->SpireMod.send(p,catalogue.page(j.text("query").take(64),j.number("page")))
             "menu"->menu(p,j)
             "start"->start(p,j.text("entry"))
-            "quit"->{requireSession(p,j);sessions.remove(p.uuid);menu(p,JsonObject())}
+            "quit"->{requireSession(p,j);sessions.remove(p.uuid);arena.leave(p);menu(p,JsonObject())}
             "move","switch","end","next"->{
                 val s=requireSession(p,j);val b=s.battle
                 when(action){
@@ -82,7 +84,8 @@ class TrialService(private val server:MinecraftServer,val catalogue:PokemonCatal
         }
         require(selected.size==3){"타입이 겹치지 않는 지원 파트너가 부족합니다."}
         val party=selected.mapIndexed{i,e->bridge.create(e,"player:$i",seed+i)}
-        val s=Session(p.uuid,UUID.randomUUID(),seed,party);begin(s);sessions[p.uuid]=s;send(p,s,true,true)
+        val s=Session(p.uuid,UUID.randomUUID(),seed,party);begin(s);arena.enter(p);sessions[p.uuid]=s
+        try{send(p,s,true,true)}catch(e:Exception){leave(p);throw e}
     }
     private fun begin(s:Session){
         s.battleNumber++;val encounter=Definitions.data.getAsJsonArray("encounters").map{it.asJsonObject}.first{it.text("encounter_id")=="ACT1-R0${(s.battleNumber-1)%3+1}"}
@@ -126,7 +129,7 @@ class TrialService(private val server:MinecraftServer,val catalogue:PokemonCatal
         addProperty("draw",fx.drawCount(m));addProperty("accuracy",m.move.accuracy)
     }
     fun snapshot(id:UUID):JsonObject?=sessions[id]?.let{buildSnapshot(it,false)}
-    private fun send(p:ServerPlayer,s:Session,open:Boolean,fresh:Boolean=false){SpireMod.send(p,buildSnapshot(s,open).apply{addProperty("fresh",fresh)})}
+    private fun send(p:ServerPlayer,s:Session,open:Boolean,fresh:Boolean=false){SpireMod.send(p,buildSnapshot(s,open).apply{addProperty("fresh",fresh);add("arena",arena.sync(p,this))})}
     private fun buildSnapshot(s:Session,open:Boolean):JsonObject{
         val b=s.battle;val player=b.players.single();return JsonObject().apply{
             addProperty("kind","battle");addProperty("open",open);addProperty("session",s.id.toString());addProperty("revision",b.revision);addProperty("round",b.round);addProperty("phase",b.phase.name)

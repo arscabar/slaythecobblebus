@@ -64,7 +64,12 @@ class SpireSmoke:ModInitializer {
         val extra=catalogue.entries.first{entry->entry.formName==entry.species.standardForm.name&&Definitions.characters.none{it.text("species_id")==entry.species.resourceIdentifier.path}&&service.bridge.reason(entry)==null}
         val extraMon=service.bridge.create(extra,"check:addon",2)
         check("registry-expansion-beyond-fixed-50",extraMon.body.species==extra.id,extra.id)
+        val originalDimension=p.level().dimension();val originalPosition=p.position()
         action(service,p,"start"){addProperty("entry",char.key)}
+        check("world-arena-teleports-body-to-side-balcony",p.level().dimension()==WorldArena.KEY&&p.x< -17&&p.z>0)
+        val arenaMon=p.serverLevel().allEntities.filterIsInstance<com.cobblemon.mod.common.entity.pokemon.PokemonEntity>().filter{it.tags.contains(WorldArena.TAG)}
+        check("only-one-active-and-encounter-enemies-spawn-in-world",arenaMon.size==2&&arenaMon.any{it.z==6.0}&&arenaMon.any{it.z== -6.0})
+        check("world-presentation-is-uncatchable-unowned-and-invulnerable",arenaMon.all{it.pokemon.isUncatchable()&&it.pokemon.getOwnerUUID()==null&&it.isInvulnerable})
         var state=requireNotNull(service.snapshot(p.uuid))
         check("actual-party-has-three-disjoint-type-pools",state.getAsJsonArray("party").size()==3&&SpirePartyRules.disjoint(state.getAsJsonArray("party").map{it.asJsonObject.getAsJsonArray("types").map{t->t.asString}.toSet()}))
         check("actual-ui-snapshot-five-card-hand-three-energy-visible-intent",state.getAsJsonArray("hand").size()==5&&state.number("energy")==3&&state.getAsJsonArray("enemies")[0].asJsonObject.text("intent").isNotBlank())
@@ -94,6 +99,8 @@ class SpireSmoke:ModInitializer {
         check("closing-and-reopening-does-not-replace-session",sessions.getValue(p.uuid)===identity)
         check("real-party-PC-and-inventory-preserved",originalParty==Cobblemon.storage.getParty(p).toList().map(::signature)&&originalPC==Cobblemon.storage.getPC(p).toList().map(::signature)&&originalInventory==p.inventory.items.map{it.toString()+it.componentsPatch.toString()})
         action(service,p,"quit");check("explicit-quit-discards-memory-only-session",service.snapshot(p.uuid)==null)
+        check("quit-restores-original-dimension-and-position",p.level().dimension()==originalDimension&&p.position().distanceTo(originalPosition)<.001)
+        check("quit-removes-world-presentation-entities",arenaMon.all{it.isRemoved})
         check("completed",true)
     }
 }

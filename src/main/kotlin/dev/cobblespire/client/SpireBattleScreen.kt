@@ -49,7 +49,11 @@ class SpireBattleScreen(data:JsonObject):SpirePane(data){
         val list=enemies();val ew=enemyWidth()
         list.forEachIndexed{i,e->control(enemyX(i),py+31,ew,14,(if(target==i)"◆ " else "")+short(SpireWidgets.name(e),ew-20),e.number("hp")>0){target=i;rebuildWidgets()}
             .also{it.selected=target==i}.tooltip=Tooltip.create(Component.literal("특성: "+Component.translatable("cobblemon.ability.${e.text("ability")}").string+"\n예상 피해는 급소 제외\n"+SpireWidgets.status(e)+"\n"+(Moves.getByName(e.text("intent"))?.description?.string?:"")))}
+        control(px+pw-151,py+8,78,16,"모험 종료"){command("quit")}
         button(px+pw-66,py+8,54,16,"닫기"){onClose()}
+        listOf("←" to {WorldBattleView.rotate(-5f,0f)},"→" to {WorldBattleView.rotate(5f,0f)},"↑" to {WorldBattleView.rotate(0f,-4f)},"↓" to {WorldBattleView.rotate(0f,4f)},"●" to {WorldBattleView.resetAngle()}).forEachIndexed{i,(label,action)->
+            button(px+12+i*24,py+31,20,16,label,click=action).tooltip=Tooltip.create(Component.literal(if(i==4)"기본 시점"else "개인 카메라 각도 조정"))
+        }
         val l=layout()
         for((kind,title,box) in listOf(Triple("draw","뽑기",l.draw),Triple("discard","버림",l.discard),Triple("exhaust","소멸",l.exhaust))){
             val n=data.getAsJsonObject("piles").getAsJsonArray(kind).size()
@@ -81,12 +85,11 @@ class SpireBattleScreen(data:JsonObject):SpirePane(data){
         return super.mouseClicked(mx,my,button)
     }
     override fun keyPressed(key:Int,scan:Int,mods:Int):Boolean{
+        when(key){263->{WorldBattleView.rotate(-5f,0f);return true};262->{WorldBattleView.rotate(5f,0f);return true};265->{WorldBattleView.rotate(0f,-4f);return true};264->{WorldBattleView.rotate(0f,4f);return true};268->{WorldBattleView.resetAngle();return true}}
         val i=if(key in 49..57)key-49 else if(key==48)9 else -1
         if(i>=0){play(i);return true};return super.keyPressed(key,scan,mods)
     }
     override fun background(g:GuiGraphics){
-        g.fill(0,0,width,height,0xFF06151B.toInt())
-        g.blit(ResourceLocation.fromNamespaceAndPath("cobblespire","textures/gui/arena-v1.png"),px,py,0f,0f,pw,ph,pw,ph)
         SpireSkin.panel(g,px,py,pw,25)
         val l=layout();g.fillGradient(px,py+l.handY.toInt()-8,px+pw,py+ph,0x30102329,0xF00B1920.toInt())
     }
@@ -100,17 +103,7 @@ class SpireBattleScreen(data:JsonObject):SpirePane(data){
         text(g,"COBBLESPIRE",px+12,py+9,0xE7C98F)
         text(g,"${data.number("round")}턴 · "+if(data.text("phase")=="PLAYER")"내 차례"else if(data.text("phase")=="VICTORY")"승리"else data.text("phase"),px+pw/2-30,py+9,0x8DDED2)
         val l=layout()
-        // Combatants are native animated Cobblemon models, not pictures baked into the arena.
-        val stageY=py+if(compact)32 else (l.handY*.42).toInt()
-        val modelScale=if(compact)26f else 64f
-        g.enableScissor(px,py+26,px+pw,py+l.handY.toInt())
-        SpireWidgets.portrait(g,active,px+(pw*.28).toInt(),stageY,modelScale)
         val list=enemies();val ew=enemyWidth()
-        list.forEachIndexed{i,e->
-            val modelX=px+(pw*.62).toInt()+i*(pw*.12).toInt()
-            if(e.number("hp")>0)SpireWidgets.portrait(g,e,modelX,stageY-8,modelScale/(if(list.size>2)1.3f else 1f))
-        }
-        g.disableScissor()
         list.forEachIndexed{i,e->val x=enemyX(i)
             SpireSkin.panel(g,x,py+29,ew,43,if(target==i)SpireSkin.teal else SpireSkin.gold)
             SpireWidgets.hp(g,e,x+4,py+47,ew-8)
@@ -128,7 +121,7 @@ class SpireBattleScreen(data:JsonObject):SpirePane(data){
         else{for(i in 0..2)SpireSkin.gem(g,px+pw-92+i*25,ay+9,5,i<data.number("energy"))
             text(g,"에너지 ${data.number("energy")}/3",px+pw-100,ay+16,0xBFE7DC)}
         hover=hovered(mx.toDouble(),my.toDouble())
-        if(!compact)text(g,"손패 ${hand().size}/${data.number("handLimit")} · 숫자키로 사용",px+pw/2-44,py+l.handY.toInt()-13,0xDDEDE5)
+        if(!compact)text(g,"손패 ${hand().size}/${data.number("handLimit")} · 숫자키: 카드 · 방향키: 시점",px+pw/2-44,py+l.handY.toInt()-13,0xDDEDE5)
         hand().forEachIndexed{i,c->if(i!=hover&&!animation.hiddenHand(c.get("instance").asLong,now))drawCard(g,c,l.hand(i))}
         hand().getOrNull(hover)?.let{drawCard(g,it,l.hand(hover),true)}
         val previous=CardBoardLayout(pw,ph,oldCount)

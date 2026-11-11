@@ -2,7 +2,7 @@ plugins {
     id 'fabric-loom' version '1.11.8'
     id 'org.jetbrains.kotlin.jvm' version '2.2.20'
 }
-version = '0.3.1-dev'
+version = '0.4.0-dev'
 group = 'dev.cobblespire'
 base { archivesName = 'cobblespire' }
 repositories { mavenCentral(); maven { url = 'https://api.modrinth.com/maven' } }
