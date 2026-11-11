@@ -3,6 +3,14 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import java.util.UUID
 class NativeEffectsTest {
+ @Test fun `upgraded spread preview uses the same modifiers and never advances damage RNG`(){
+  val p=a("player:0");val e=a("enemy:0");val actors=listOf(p,e).associateBy{it.body.uid}
+  val one=NativeEffects(actors,998);val two=NativeEffects(actors,998);val m=MoveCompatibility.move("flamethrower")
+  val range=one.estimate(p.body,e.body,m,upgraded=true,spread=true)
+  assertEquals(one.referenceDamage(p.body,e.body,m,85,upgraded=true,spread=true),range.first)
+  assertEquals(one.referenceDamage(p.body,e.body,m,100,upgraded=true,spread=true),range.second)
+  assertEquals(two.damage(p.body,e.body,m,false,1.0),one.damage(p.body,e.body,m,false,1.0))
+ }
  private fun a(uid:String,ability:String="blaze",types:Set<String> = setOf("normal"))=PokemonBridge.Actor(SpireCombatant(uid,"cobblemon:rattata",types,100),uid,ability,mutableMapOf("hp" to 100,"atk" to 100,"def" to 100,"spa" to 100,"spd" to 100,"spe" to 100),mapOf("hp" to 5),emptySet(),emptyList())
  private fun b(p:PokemonBridge.Actor,e:PokemonBridge.Actor)=SpireBattle(listOf(SpireBattlePlayer(UUID(1,2),listOf(p.body))),listOf(e.body),1)
  @Test fun `damage preview does not consume RNG and ordinary tackle range matches reference`(){val p=a("player:0");val e=a("enemy:0");val fx=NativeEffects(listOf(p,e).associateBy{it.body.uid},2)

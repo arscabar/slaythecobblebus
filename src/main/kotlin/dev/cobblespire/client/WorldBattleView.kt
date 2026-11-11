@@ -24,7 +24,7 @@ object WorldBattleView {
     }
     fun tick(mc:Minecraft){
         val d=arena;val level=mc.level
-        val tactical=mc.screen is SpireBattleScreen||mc.screen is PileScreen
+        val tactical=mc.screen is SpireBattleScreen||mc.screen is PileScreen||mc.screen is BattleResultScreen
         if(d==null||level==null||mc.player==null||!tactical||level.dimension().location().toString()!=d.text("dimension")){restore(mc);return}
         val e=camera?.takeIf{it.level()===level}?:ArmorStand(level,0.0,0.0,0.0).also{camera=it;it.isInvisible=true}
         e.setPos(d.get("cameraX").asDouble,d.get("cameraY").asDouble-e.eyeHeight,d.get("cameraZ").asDouble)

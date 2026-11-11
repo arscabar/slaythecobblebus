@@ -35,7 +35,7 @@ class SpireBattlePlayer(val id:UUID,val party:List<SpireCombatant>){
 }
 enum class SpireBattlePhase{PLAYER,ENEMY,VICTORY,DEFEAT}
 data class EnemyIntent(val actor:Int,val move:SpireMove)
-data class SpireBattleEvent(val name:String,val round:Int,val actor:String="",val target:String="",val amount:Int=0)
+data class SpireBattleEvent(val name:String,val round:Int,val actor:String="",val target:String="",val amount:Int=0,val moveId:String="",val moveType:String="",val multiplier:Double=1.0)
 fun interface SpireBattleHook{fun dispatch(event:SpireBattleEvent,battle:SpireBattle)}
 
 interface SpireEffects {
@@ -66,7 +66,7 @@ class SpireBattle(val players:List<SpireBattlePlayer>,val enemies:List<SpireComb
     var victoryCount=0;private set
     var intents:List<EnemyIntent> = emptyList()
     val winningSurvivors=mutableSetOf<String>()
-    private fun event(name:String,actor:String="",target:String="",amount:Int=0){val e=SpireBattleEvent(name,round,actor,target,amount);events.add(e);hook.dispatch(e,this)}
+    private fun event(name:String,actor:String="",target:String="",amount:Int=0,move:SpireMove?=null,multiplier:Double=1.0){val e=SpireBattleEvent(name,round,actor,target,amount,move?.id.orEmpty(),move?.type.orEmpty(),multiplier);events.add(e);hook.dispatch(e,this)}
     private fun participant(id:UUID)=requireNotNull(players.firstOrNull{it.id==id}){"모험 참가자가 아닙니다."}
     private fun validateRequest(id:UUID,request:String,token:Int){
         require(request.length in 1..80);require(id to request !in requests){"이미 처리한 요청입니다."}
@@ -98,12 +98,12 @@ class SpireBattle(val players:List<SpireBattlePlayer>,val enemies:List<SpireComb
             val hit=!failed&&effects.canHit(self,t,move,this)&&hitRandom.nextInt(100)<effects.accuracy(self,t,move).coerceIn(0,100)
             if(hit){
                 val multiplier=effectiveness(move.type,t.types)
-                if(move.power>0&&multiplier==0.0){event("MOVE_MISS",self.uid,t.uid);continue}
+                if(move.power>0&&multiplier==0.0){event("MOVE_MISS",self.uid,t.uid,move=move,multiplier=0.0);continue}
                 val actual=if(move.power>0){val raw=effects.damage(self,t,move,card.upgraded,multiplier);val n=if(raw<=0)0 else floor(raw).toInt().coerceAtLeast(1);n.coerceAtMost(t.hp)}else 0
-                t.hp-=actual;inflicted+=actual;event("MOVE_HIT",self.uid,t.uid,actual)
+                t.hp-=actual;inflicted+=actual;event("MOVE_HIT",self.uid,t.uid,actual,move,multiplier)
                 if(move.status!=null&&t.alive)t.afflict(move.status,round,move.duration)
                 effects.hit(self,t,move,actual,this)
-            }else event("MOVE_MISS",self.uid,t.uid)
+            }else event("MOVE_MISS",self.uid,t.uid,move=move)
         }
         if(inflicted>0&&move.recoilFraction>0)self.hp=(self.hp-floor(inflicted*move.recoilFraction).toInt().coerceAtLeast(1)).coerceAtLeast(0)
         if(!failed&&move.healFraction>0)self.heal(effects.healing(self,move))
@@ -133,13 +133,13 @@ class SpireBattle(val players:List<SpireBattlePlayer>,val enemies:List<SpireComb
                 for(target in targets){
                     if(effects.canHit(actor,target,move,this)&&hitRandom.nextInt(100)<effects.accuracy(actor,target,move).coerceIn(0,100)){
                         val mul=effectiveness(move.type,target.types)
-                        if(move.power>0&&mul==0.0){event("MOVE_MISS",actor.uid,target.uid);continue}
+                        if(move.power>0&&mul==0.0){event("MOVE_MISS",actor.uid,target.uid,move=move,multiplier=0.0);continue}
                         val raw=if(move.power>0&&mul>0)effects.damage(actor,target,move,false,mul)else 0.0
                         val n=if(raw<=0)0 else floor(raw).toInt().coerceAtLeast(1).coerceAtMost(target.hp)
-                        target.hp-=n;inflicted+=n;event("AFTER_DAMAGE_TAKEN",actor.uid,target.uid,n)
+                        target.hp-=n;inflicted+=n;event("AFTER_DAMAGE_TAKEN",actor.uid,target.uid,n,move,mul)
                         if(move.status!=null&&target.alive)target.afflict(move.status,round,move.duration)
                         effects.hit(actor,target,move,n,this)
-                    }else event("MOVE_MISS",actor.uid,target.uid)
+                    }else event("MOVE_MISS",actor.uid,target.uid,move=move)
                 }
                 effects.resolved(actor,move,inflicted,this)
                 if(move.healFraction>0)actor.heal(effects.healing(actor,move))

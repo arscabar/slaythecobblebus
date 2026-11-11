@@ -57,14 +57,14 @@ class NativeEffects(val actors:Map<String,PokemonBridge.Actor>,seed:Long):SpireE
         val chance=when{ratio>=4->1;ratio==3->2;ratio==2->8;else->24}
         return referenceDamage(source,target,move,random.nextInt(85,101),random.nextInt(chance)==0,upgraded,multiplier,spreadActive).toDouble()
     }
-    fun estimate(source:SpireCombatant,target:SpireCombatant,move:SpireMove):Pair<Int,Int>{
+    fun estimate(source:SpireCombatant,target:SpireCombatant,move:SpireMove,upgraded:Boolean=false,spread:Boolean=false):Pair<Int,Int>{
         if(move.power<=0)return 0 to 0
         val a=ability(target)
         if(a=="soundproof"&&spec(move).obj("flags")?.number("sound")==1)return 0 to 0
         if(a=="levitate"&&move.type=="ground"||a=="flashfire"&&move.type=="fire"||a=="waterabsorb"&&move.type=="water")return 0 to 0
         val original=MoveCompatibility.multiplier(move.type,target.types)
         val mul=original
-        return referenceDamage(source,target,move,85,multiplier=mul) to referenceDamage(source,target,move,100,multiplier=mul)
+        return referenceDamage(source,target,move,85,upgraded=upgraded,multiplier=mul,spread=spread) to referenceDamage(source,target,move,100,upgraded=upgraded,multiplier=mul,spread=spread)
     }
     override fun accuracy(source:SpireCombatant,target:SpireCombatant,move:SpireMove):Int {
         if(move.trainer)return 100

@@ -19,6 +19,7 @@ class TrialService(private val server:MinecraftServer,val catalogue:PokemonCatal
         var actors=emptyMap<String,PokemonBridge.Actor>();var profiles=emptyMap<String,JsonObject>();var choices=emptyMap<String,IntentRules.Choice>()
         val log=ArrayDeque<String>()
         val evolution=EvolutionAccess()
+        var loot:VictoryLoot?=null
         var logFailureReported=false
     }
     val arena=WorldArena(server)
@@ -32,7 +33,7 @@ class TrialService(private val server:MinecraftServer,val catalogue:PokemonCatal
     fun handle(p:ServerPlayer,j:JsonObject){
         require(j.text("action").length<=32)
         val action=j.text("action")
-        if(action in setOf("move","switch","end","next","start")){
+        if(action in setOf("move","switch","end","next","start","claim")){
             require(server.tickCount-(lastAction[p.uuid]?:-999)>=2){"이전 요청 처리 후 다시 시도하세요."};lastAction[p.uuid]=server.tickCount
         }
         when(action){
@@ -41,13 +42,20 @@ class TrialService(private val server:MinecraftServer,val catalogue:PokemonCatal
             "menu"->menu(p,j)
             "start"->start(p,j.text("entry"))
             "quit"->{requireSession(p,j);sessions.remove(p.uuid);arena.leave(p);menu(p,JsonObject())}
-            "move","switch","end","next"->{
+            "move","switch","end","next","claim"->{
                 val s=requireSession(p,j);val b=s.battle
                 when(action){
                     "move"->b.useMove(p.uuid,j.number("handIndex",-1),j.get("instance")?.asLong?:-1,j.number("target",-1),j.text("request"),j.number("revision",-1))
                     "switch"->{b.switch(p.uuid,j.number("index",-1),j.text("request"),j.number("revision",-1));s.activeIndex=b.players.single().activeIndex}
                     "end"->b.endTurn(p.uuid,j.text("request"),j.number("revision",-1))
-                    "next"->{require(j.number("revision",-1)==b.revision&&b.phase==SpireBattlePhase.VICTORY);require(BattleRegistry.getBattleByParticipatingPlayer(p)==null){"일반 전투가 끝난 뒤 진행하세요."};begin(s)}
+                    "claim"->{
+                        require(b.phase==SpireBattlePhase.VICTORY&&j.number("revision",-1)==b.revision){"승리 정산 화면을 다시 열어주세요."}
+                        val loot=requireNotNull(s.loot);val index=j.number("choice",-2);loot.validate(index)
+                        val offer=loot.offers.getOrNull(index)
+                        val replacement=offer?.let{BattleDeck(s.party[it.owner].body.deck!!.original+it.card,Random(s.seed+s.battleNumber*37))}
+                        loot.claim(index);if(offer!=null)s.party[offer.owner].body.deck=replacement
+                    }
+                    "next"->{require(s.loot?.settled==true){"전리품을 선택하거나 건너뛴 뒤 진행하세요."};require(j.number("revision",-1)==b.revision&&b.phase==SpireBattlePhase.VICTORY);require(BattleRegistry.getBattleByParticipatingPlayer(p)==null){"일반 전투가 끝난 뒤 진행하세요."};begin(s)}
                 }
                 send(p,s,false)
             }
@@ -88,7 +96,7 @@ class TrialService(private val server:MinecraftServer,val catalogue:PokemonCatal
         try{send(p,s,true,true)}catch(e:Exception){leave(p);throw e}
     }
     private fun begin(s:Session){
-        s.battleNumber++;val encounter=Definitions.data.getAsJsonArray("encounters").map{it.asJsonObject}.first{it.text("encounter_id")=="ACT1-R0${(s.battleNumber-1)%3+1}"}
+        s.loot=null;s.battleNumber++;val encounter=Definitions.data.getAsJsonArray("encounters").map{it.asJsonObject}.first{it.text("encounter_id")=="ACT1-R0${(s.battleNumber-1)%3+1}"}
         val profiles=Definitions.enemies.associateBy{it.text("enemy_id")}
         val instances=encounter.getAsJsonArray("enemy_instances").map{it.asJsonObject}
         val hp=SpirePartyRules.hpBudget(180,1.0,instances.map{it.decimal("threat_weight",1.0)},1)
@@ -106,6 +114,18 @@ class TrialService(private val server:MinecraftServer,val catalogue:PokemonCatal
             "ROUND_START"->{s.choices=s.battle.enemies.filter{it.alive}.associate{actor->actor.uid to s.ai.choose(actor,s.profiles.getValue(actor.uid),s.battle,s.actors.getValue(actor.uid).nativeMoves.map{it.name}.toSet())};s.battle.intents=s.battle.enemies.mapIndexedNotNull{i,a->s.choices[a.uid]?.let{EnemyIntent(i,it.move)}}}
             "ENEMY_MOVE_STARTED"->s.choices[e.actor]?.let{s.ai.used(it,s.battle.round)}
             "PROGRESSION"->{s.points+=2}
+            "BATTLE_WON"->{
+                if(s.loot==null){val rng=Random(s.seed+s.battleNumber*117)
+                    val offers=s.party.mapIndexed{owner,a->
+                        val entry=catalogueActors.first{it.id==a.body.species}
+                        val legal=bridge.legalMoves(entry).filter{bridge.moveReason(it)==null}
+                        val fresh=legal.filter{m->a.body.deck!!.original.none{it.move.id==m.name}}
+                        val chosen=(fresh.ifEmpty{legal}).shuffled(rng).first()
+                        LootCard(owner,MoveInstance(-s.battleNumber.toLong()*10-owner-1,MoveCompatibility.move(chosen.name)))
+                    }
+                    s.loot=VictoryLoot(s.battleNumber,offers)
+                }
+            }
         }
         if(e.name in setOf("MOVE_HIT","MOVE_MISS","AFTER_DAMAGE_TAKEN","NORMAL_SWITCH","FORCED_SWITCH","BATTLE_WON","BATTLE_LOST")){
             val actor=s.actors[e.actor]?.name.orEmpty();val target=s.actors[e.target]?.name.orEmpty()
@@ -114,7 +134,7 @@ class TrialService(private val server:MinecraftServer,val catalogue:PokemonCatal
         }
         runCatching{
             val path=FabricLoader.getInstance().gameDir.resolve("logs/cobblespire/trials/${s.id}.jsonl");Files.createDirectories(path.parent)
-        Files.writeString(path,SpireMod.gson.toJson(JsonObject().apply{addProperty("seed",s.seed);addProperty("battle",s.battleNumber);addProperty("event",e.name);addProperty("round",e.round);addProperty("actor",e.actor);addProperty("target",e.target);addProperty("amount",e.amount)}).replace("\n","")+"\n",java.nio.file.StandardOpenOption.CREATE,java.nio.file.StandardOpenOption.APPEND)
+        Files.writeString(path,SpireMod.gson.toJson(JsonObject().apply{addProperty("move",e.moveId);addProperty("type",e.moveType);addProperty("multiplier",e.multiplier);addProperty("seed",s.seed);addProperty("battle",s.battleNumber);addProperty("event",e.name);addProperty("round",e.round);addProperty("actor",e.actor);addProperty("target",e.target);addProperty("amount",e.amount)}).replace("\n","")+"\n",java.nio.file.StandardOpenOption.CREATE,java.nio.file.StandardOpenOption.APPEND)
         }.onFailure{if(!s.logFailureReported){s.logFailureReported=true;SpireMod.logger.warn("Trial trace could not be written; in-memory events are retained",it)}}
     }
     private fun card(a:PokemonBridge.Actor)=JsonObject().apply{
@@ -126,7 +146,7 @@ class TrialService(private val server:MinecraftServer,val catalogue:PokemonCatal
     private fun cardInfo(m:MoveInstance,fx:NativeEffects)=JsonObject().apply{
         addProperty("instance",m.uid);addProperty("move",m.move.id);addProperty("cost",fx.cost(m));addProperty("type",m.move.type)
         addProperty("trainer",m.move.trainer);addProperty("exhaust",m.move.exhaust);addProperty("retain",m.retain);addProperty("upgraded",m.upgraded)
-        addProperty("draw",fx.drawCount(m));addProperty("accuracy",m.move.accuracy)
+        addProperty("draw",fx.drawCount(m));addProperty("accuracy",m.move.accuracy);addProperty("selfTarget",m.move.selfTarget);addProperty("power",m.move.power);addProperty("category",if(m.move.trainer)"Trainer"else MoveCompatibility.specs[m.move.id]?.text("category").orEmpty())
     }
     fun snapshot(id:UUID):JsonObject?=sessions[id]?.let{buildSnapshot(it,false)}
     private fun send(p:ServerPlayer,s:Session,open:Boolean,fresh:Boolean=false){SpireMod.send(p,buildSnapshot(s,open).apply{addProperty("fresh",fresh);add("arena",arena.sync(p,this))})}
@@ -135,11 +155,30 @@ class TrialService(private val server:MinecraftServer,val catalogue:PokemonCatal
             addProperty("kind","battle");addProperty("open",open);addProperty("session",s.id.toString());addProperty("revision",b.revision);addProperty("round",b.round);addProperty("phase",b.phase.name)
             addProperty("progress",s.points);addProperty("points",s.points);addProperty("energy",player.energy);addProperty("active",player.activeIndex);addProperty("forced",player.forcedSwitch);addProperty("switchUsed",player.normalSwitchUsed);addProperty("battleNumber",s.battleNumber)
             add("party",JsonArray().also{a->s.party.forEach{a.add(card(it))}})
-            add("enemies",JsonArray().also{a->b.enemies.forEach{enemy->val c=card(s.actors.getValue(enemy.uid));s.choices[enemy.uid]?.let{choice->c.addProperty("intent",choice.move.id);val damage=s.effects.estimate(enemy,player.active,choice.move);c.addProperty("minDamage",damage.first);c.addProperty("maxDamage",damage.second)};a.add(c)}})
+            add("enemies",JsonArray().also{a->b.enemies.forEach{enemy->val c=card(s.actors.getValue(enemy.uid));s.choices[enemy.uid]?.let{choice->
+                val move=choice.move;c.addProperty("intent",move.id);c.addProperty("intentType",move.type);c.addProperty("intentPower",move.power)
+                c.addProperty("intentAccuracy",s.effects.accuracy(enemy,if(move.selfTarget)enemy else player.active,move))
+                val damage=s.effects.estimate(enemy,player.active,move,spread=move.targetAll&&b.players.count{it.active.alive}>1)
+                c.addProperty("minDamage",damage.first.coerceAtMost(player.active.hp));c.addProperty("maxDamage",damage.second.coerceAtMost(player.active.hp))
+                c.addProperty("multiplier",MoveCompatibility.multiplier(move.type,player.active.types));c.addProperty("selfTarget",move.selfTarget)
+            };a.add(c)}})
+            add("damageEvents",JsonArray().also{a->b.events.withIndex().filter{it.value.name in setOf("MOVE_HIT","AFTER_DAMAGE_TAKEN","MOVE_MISS")}.takeLast(8).forEach{(index,e)->a.add(JsonObject().apply{
+                addProperty("incoming",e.target.startsWith("player:"));addProperty("seq",index+1);addProperty("actor",s.actors[e.actor]?.name.orEmpty());addProperty("target",s.actors[e.target]?.name.orEmpty());addProperty("amount",e.amount)
+                addProperty("move",e.moveId);addProperty("type",e.moveType);addProperty("multiplier",e.multiplier);addProperty("miss",e.name=="MOVE_MISS")
+            })}})
+            s.loot?.let{loot->add("loot",JsonObject().apply{
+                addProperty("settled",loot.settled);addProperty("selected",loot.selected?:-2);addProperty("progressAward",2);addProperty("revivedCount",s.party.count{it.body.uid !in b.winningSurvivors})
+                add("offers",JsonArray().also{a->loot.offers.forEach{offer->a.add(cardInfo(offer.card,s.effects).apply{addProperty("owner",offer.owner);addProperty("ownerName",s.party[offer.owner].name)})}})
+            })}
             addProperty("evolutionCredits",s.evolution.available().size);add("badges",JsonArray().also{a->s.evolution.earnedBadges().forEach{a.add(it)}})
             val deck=player.active.deck!!
             addProperty("deckOwner",player.active.uid);addProperty("handLimit",deck.handLimit);addProperty("motionSequence",deck.sequence)
-            add("hand",JsonArray().also{a->deck.hand.forEach{a.add(cardInfo(it,s.effects))}})
+            add("hand",JsonArray().also{a->deck.hand.forEach{m->a.add(cardInfo(m,s.effects).apply{
+                add("previews",JsonArray().also{out->b.enemies.forEach{foe->
+                    val damage=s.effects.estimate(player.active,foe,m.move,m.upgraded,m.move.targetAll&&b.enemies.count{it.alive}>1)
+                    out.add(JsonObject().apply{addProperty("accuracy",s.effects.accuracy(player.active,if(m.move.selfTarget)player.active else foe,m.move));addProperty("targetName",s.actors[if(m.move.selfTarget)player.active.uid else foe.uid]?.name.orEmpty());addProperty("minDamage",damage.first.coerceAtMost(foe.hp));addProperty("maxDamage",damage.second.coerceAtMost(foe.hp));addProperty("multiplier",MoveCompatibility.multiplier(m.move.type,foe.types))})
+                }})
+            })}})
             add("piles",JsonObject().apply{
                 add("draw",JsonArray().also{a->deck.draw.sortedWith(compareBy<MoveInstance>{it.move.id}.thenBy{it.uid}).forEach{a.add(cardInfo(it,s.effects))}})
                 add("discard",JsonArray().also{a->deck.discard.forEach{a.add(cardInfo(it,s.effects))}})

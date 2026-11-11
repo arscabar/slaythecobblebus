@@ -76,14 +76,24 @@ class SpireSmoke:ModInitializer {
         @Suppress("UNCHECKED_CAST") val sessions=field(service,"sessions") as MutableMap<UUID,Any>
         val session=sessions.getValue(p.uuid);val battle=field(session,"battle") as SpireBattle
         val self=battle.players.single().active
+        check("hand-preview-includes-type-power-and-per-target-damage",state.getAsJsonArray("hand").all{it.asJsonObject.has("power")&&it.asJsonObject.getAsJsonArray("previews").size()==1})
+        check("enemy-intent-exposes-type-and-damage-range",state.getAsJsonArray("enemies").all{it.asJsonObject.text("intentType").isNotBlank()&&it.asJsonObject.has("intentAccuracy")})
         check("starter-learnset-includes-test-flamethrower",native.nativeMoves.any{it.name=="flamethrower"})
         self.deck!!.hand[0]=MoveInstance(999,MoveCompatibility.move("flamethrower"));battle.enemies.single().hp=1
         val packet=JsonObject().apply{addProperty("action","move");addProperty("session",state.text("session"));addProperty("battleNumber",state.number("battleNumber"));addProperty("revision",state.number("revision"));addProperty("request","same-test-request");addProperty("handIndex",0);addProperty("instance",999);addProperty("target",0)}
         @Suppress("UNCHECKED_CAST") val throttle=field(service,"lastAction") as MutableMap<UUID,Int>;throttle.remove(p.uuid)
         service.handle(p,packet);state=requireNotNull(service.snapshot(p.uuid))
+        check("resolved-hit-carries-real-type-and-actual-HP-loss",state.getAsJsonArray("damageEvents").any{it.asJsonObject.text("type")=="fire"&&it.asJsonObject.number("amount")==1})
         check("native-move-resolves-to-real-server-victory",state.text("phase")=="VICTORY"&&state.number("points")==2&&state.number("energy")==1)
         val before=state.toString();throttle.remove(p.uuid);val duplicate=runCatching{service.handle(p,packet)}.isFailure
         check("duplicate-move-cannot-charge-or-reward-twice",duplicate&&service.snapshot(p.uuid).toString()==before)
+        val loot=state.getAsJsonObject("loot")
+        check("victory-snapshot-exposes-three-server-owned-loot-candidates",loot.getAsJsonArray("offers").size()==3&&!loot.get("settled").asBoolean)
+        val sizeBefore=self.deck!!.original.size
+        check("next-is-blocked-until-reward-is-settled",runCatching{action(service,p,"next")}.isFailure)
+        action(service,p,"claim"){addProperty("choice",0)}
+        check("claim-adds-one-card-to-designated-run-deck",self.deck!!.original.size==sizeBefore+1)
+        check("duplicate-claim-cannot-add-second-card",runCatching{action(service,p,"claim"){addProperty("choice",0)}}.isFailure&&self.deck!!.original.size==sizeBefore+1)
         action(service,p,"next");state=requireNotNull(service.snapshot(p.uuid))
         check("next-battle-deals-new-hand-and-new-intents",state.number("battleNumber")==2&&state.number("energy")==3&&state.text("phase")=="PLAYER")
         val bench=state.getAsJsonArray("party").mapIndexedNotNull{i,c->c.asJsonObject.takeIf{i!=state.number("active")}}

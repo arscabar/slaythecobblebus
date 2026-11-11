@@ -1,0 +1,23 @@
+{
+  "version": "0.5.0-dev",
+  "protocol": 5,
+  "unitTests": 56,
+  "nativeChecks": 31,
+  "jarSha256": "6f8837f1529bbbf581c12d0802cc1e6c97320f6f5f52f54f1f44f68f922fbf2b",
+  "screenshots": [
+    "damage-preview.png",
+    "victory-loot.png"
+  ],
+  "visualChecks": [
+    "Card 81-96 predicted HP loss resolves to 90",
+    "Card 54-64 predicted HP loss resolves to 54",
+    "Enemy normal Tackle 27-33 damage intent visible",
+    "Victory modal automatically opens with three loot cards",
+    "One selection highlights received card and dims remaining candidates",
+    "Next battle has 11-card deck: 5 in hand and 6 in draw pile"
+  ],
+  "visualScope": "maximized isolated Minecraft client; final compact energy layout and support tooltip wording build-checked only",
+  "productionInstalled": false,
+  "coopImplemented": false,
+  "rewardScope": "temporary per-Pokemon run deck only; real party, PC and inventory untouched"
+}
