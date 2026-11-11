@@ -1,0 +1,19 @@
+{
+  "version": "0.3.1-dev",
+  "junitTests": 53,
+  "damageReferenceVectors": 640,
+  "jarSha256": "b14396bc69b408850fcd1aa4ebba6e96d624cee89c0c9c4a90bfa41a7dc98db4",
+  "visualClient": "Minecraft 1.21.1 / Cobblemon 1.7.3, isolated Loom client",
+  "screenshots": [
+    "battle-charizard.png",
+    "battle-sableye.png"
+  ],
+  "visualChecks": [
+    "Compact and maximized viewport: native Charizard and Rattata visible without hand clipping",
+    "Play 1 energy card: enemy HP 180 -> 93, energy 3 -> 2, hand 5 -> 4, discard 0 -> 1",
+    "Switch Charizard -> Sableye: native model replaced, energy 2 -> 1, fresh hand of 5",
+    "Unaffordable 2 energy cards visibly dimmed"
+  ],
+  "worldArenaImplemented": false,
+  "productionInstalled": false
+}

@@ -9,9 +9,10 @@ class CardBoardLayout(val width:Int,val height:Int,val count:Int){
     val side=min(68.0,max(42.0,width*.095))
     val cardH=min(136.0,(height-(if(compact)118 else 168)-36).toDouble()).coerceAtLeast(36.0)
     val handY=height-cardH-36
-    val draw=CardBox(12.0,handY+cardH/2-23,side,46.0)
-    val discard=CardBox(width-side-12,handY+cardH-46,side,46.0)
-    val exhaust=CardBox(discard.x,discard.y-54,side,46.0)
+    private val pileHeight=if(compact)34.0 else 46.0
+    val draw=CardBox(12.0,handY+cardH/2-pileHeight/2,side,pileHeight)
+    val discard=CardBox(width-side-12,handY+cardH-pileHeight,side,pileHeight)
+    val exhaust=CardBox(discard.x,discard.y-pileHeight-8,side,pileHeight)
     private val left=draw.x+draw.w+10
     private val available=discard.x-10-left
     val cardW=min(96.0,((available-16)/5.0)).coerceAtLeast(26.0)
