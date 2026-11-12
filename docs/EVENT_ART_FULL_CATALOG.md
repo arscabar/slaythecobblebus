@@ -72,22 +72,22 @@
 
 | 제안 ID | 이미지 위치 | 장면과 구도 | 생성된 시안 파일 |
 |---|---|---|---|
-| FLOW-START-01 | 모험 시작 | 블록형 길의 입구를 바라보는 대표 포켓몬; 출발의 기대 | 시안 대기 (`art_reference/README.md` 명세 수록) |
-| FLOW-PARTY-01 | 시작 파티 준비 | 세 포켓몬이 같은 길을 바라봄; 실제 종은 선택 결과에 맞춰야 하므로 고정 그림 사용 여부 검토 | 시안 대기 (`art_reference/README.md` 명세 수록) |
+| FLOW-START-01 | 모험 시작 | 블록형 길의 입구를 바라보는 대표 포켓몬; 출발의 기대 | [flow_start_01.png](art_reference/events/flow_start_01.png) |
+| FLOW-PARTY-01 | 시작 파티 준비 | 세 포켓몬이 같은 길을 바라봄; 실제 종은 선택 결과에 맞춰야 하므로 고정 그림 사용 여부 검토 | [flow_party_01.png](art_reference/events/flow_party_01.png) |
 | FLOW-ACT1-01 | 1막 도입 | 숲과 오래된 시설이 보이는 길 앞의 작은 포켓몬 | [story_act1.png](art_reference/events/story_act1.png) |
 | FLOW-ACT2-M-01 | 2막 마그마 경로 도입 | 붉은 화산 능선과 블록형 바위 앞의 포켓몬 | [story_act2_m.png](art_reference/events/story_act2_m.png) |
 | FLOW-ACT2-A-01 | 2막 아쿠아 경로 도입 | 물가와 잠긴 블록 유적을 바라보는 포켓몬 | [story_act2_a.png](art_reference/events/story_act2_a.png) |
 | FLOW-ACT3-01 | 3막 도입 | 차가운 유적과 먼 하늘의 빛을 보는 포켓몬 | [story_act3.png](art_reference/events/story_act3.png) |
 | FAC-SHOP-01 | 상점 진입 | 여행 물건이 진열된 블록형 가판대와 물건을 살피는 포켓몬 | [facility_shop.png](art_reference/events/facility_shop.png) |
-| FAC-SHOP-02 | 기술 제거 선택 | 작업대 위 빈 카드 모양 소품을 살피는 포켓몬; 글자·구체 효과 없음 | 시안 대기 (`art_reference/README.md` 명세 수록) |
+| FAC-SHOP-02 | 기술 제거 선택 | 작업대 위 빈 카드 모양 소품을 살피는 포켓몬; 글자·구체 효과 없음 | [fac_shop_02.png](art_reference/events/fac_shop_02.png) |
 | FAC-REST-01 | 휴식처 진입·회복 선택 | 블록형 모닥불 곁에 모인 포켓몬, 편안하고 따뜻한 빛 | [facility_rest.png](art_reference/events/facility_rest.png) |
 | FAC-REST-02 | 휴식처 기술 강화 선택 | 안전한 야영지 근처 연습 표적을 바라보는 포켓몬 | [progress_upgrade_01.png](art_reference/events/progress_upgrade_01.png) |
 | FAC-TREASURE-01 | 보물볼 진입 | 제단의 닫힌 보물볼, 주변을 살피는 포켓몬; 내용물 감춤 | [facility_treasure.png](art_reference/events/facility_treasure.png) |
-| FAC-TREASURE-02 | 보물 선택 포기 | 닫힌 보물볼을 뒤로하고 떠나는 실루엣; 실제 분기 필요 시만 | 시안 대기 (`art_reference/README.md` 명세 수록) |
-| REWARD-BATTLE-01 | 전투 후 보상 | 정돈된 여행 물품과 쉬고 있는 포켓몬; 특정 보상 확정 금지 | 시안 대기 (`art_reference/README.md` 명세 수록) |
-| REWARD-MOVE-01 | 기술 보상 선택 | 빛나는 무늬가 새겨진 훈련 장소와 포켓몬; 문자·카드 텍스트 금지 | 시안 대기 (`art_reference/README.md` 명세 수록) |
-| REWARD-CONSUMABLE-01 | 소모품 보상 | 여행 가방 옆에 놓인 일반적인 빈 용기; 실제 아이템 형상은 기획 후 | 시안 대기 (`art_reference/README.md` 명세 수록) |
-| FLOW-BOSS-INTRO-01 | 보스 노드 진입 | 해당 막의 유적에서 보스 실루엣이 등장; 종·수는 조우 ID에 맞춤 | 시안 대기 (`art_reference/README.md` 명세 수록) |
+| FAC-TREASURE-02 | 보물 선택 포기 | 닫힌 보물볼을 뒤로하고 떠나는 실루엣; 실제 분기 필요 시만 | [fac_treasure_02.png](art_reference/events/fac_treasure_02.png) |
+| REWARD-BATTLE-01 | 전투 후 보상 | 정돈된 여행 물품과 쉬고 있는 포켓몬; 특정 보상 확정 금지 | [reward_battle_01.png](art_reference/events/reward_battle_01.png) |
+| REWARD-MOVE-01 | 기술 보상 선택 | 빛나는 무늬가 새겨진 훈련 장소와 포켓몬; 문자·카드 텍스트 금지 | [reward_move_01.png](art_reference/events/reward_move_01.png) |
+| REWARD-CONSUMABLE-01 | 소모품 보상 | 여행 가방 옆에 놓인 일반적인 빈 용기; 실제 아이템 형상은 기획 후 | [reward_consumable_01.png](art_reference/events/reward_consumable_01.png) |
+| FLOW-BOSS-INTRO-01 | 보스 노드 진입 | 해당 막의 유적에서 보스 실루엣이 등장; 종·수는 조우 ID에 맞춤 | [flow_boss_intro_01.png](art_reference/events/flow_boss_intro_01.png) |
 | FLOW-ACT-CLEAR-01 | 막 완료 | 새 길을 바라보는 포켓몬 뒷모습, 지나온 막의 환경 | [result_act_clear.png](art_reference/events/result_act_clear.png) |
 | FLOW-VICTORY-01 | 최종 승리 | 새벽 풍경을 바라보는 포켓몬, 성취감과 여운 | [result_run_clear.png](art_reference/events/result_run_clear.png) |
 | FLOW-DEFEAT-01 | 패배·종료 | 안전한 길을 따라 돌아가는 포켓몬, 고요하고 비폭력적인 마무리 | [result_run_defeat.png](art_reference/events/result_run_defeat.png) |
