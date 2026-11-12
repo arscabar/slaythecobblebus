@@ -20,6 +20,7 @@ class TrialService(private val server:MinecraftServer,val catalogue:PokemonCatal
         val log=ArrayDeque<String>()
         val evolution=EvolutionAccess()
         var loot:VictoryLoot?=null
+        var encounter=""
         var logFailureReported=false
     }
     val arena=WorldArena(server)
@@ -97,6 +98,7 @@ class TrialService(private val server:MinecraftServer,val catalogue:PokemonCatal
     }
     private fun begin(s:Session){
         s.loot=null;s.battleNumber++;val encounter=Definitions.data.getAsJsonArray("encounters").map{it.asJsonObject}.first{it.text("encounter_id")=="ACT1-R0${(s.battleNumber-1)%3+1}"}
+        s.encounter=encounter.text("encounter_id")
         val profiles=Definitions.enemies.associateBy{it.text("enemy_id")}
         val instances=encounter.getAsJsonArray("enemy_instances").map{it.asJsonObject}
         val hp=SpirePartyRules.hpBudget(180,1.0,instances.map{it.decimal("threat_weight",1.0)},1)
@@ -160,7 +162,7 @@ class TrialService(private val server:MinecraftServer,val catalogue:PokemonCatal
     private fun buildSnapshot(s:Session,open:Boolean):JsonObject{
         val b=s.battle;val player=b.players.single();return JsonObject().apply{
             addProperty("kind","battle");addProperty("open",open);addProperty("session",s.id.toString());addProperty("revision",b.revision);addProperty("round",b.round);addProperty("phase",b.phase.name)
-            addProperty("progress",s.points);addProperty("points",s.points);addProperty("energy",player.energy);addProperty("active",player.activeIndex);addProperty("forced",player.forcedSwitch);addProperty("switchUsed",player.normalSwitchUsed);addProperty("battleNumber",s.battleNumber)
+            addProperty("progress",s.points);addProperty("points",s.points);addProperty("energy",player.energy);addProperty("active",player.activeIndex);addProperty("forced",player.forcedSwitch);addProperty("switchUsed",player.normalSwitchUsed);addProperty("battleNumber",s.battleNumber);addProperty("encounter",s.encounter)
             add("party",JsonArray().also{a->s.party.forEach{a.add(card(it))}})
             add("enemies",JsonArray().also{a->b.enemies.forEach{enemy->val c=card(s.actors.getValue(enemy.uid));s.choices[enemy.uid]?.let{choice->
                 val move=choice.move;val role=CardSemantics.role(move)

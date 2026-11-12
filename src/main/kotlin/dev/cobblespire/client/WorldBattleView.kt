@@ -17,6 +17,8 @@ object WorldBattleView {
     fun resetAngle(){yawOffset=0f;pitchOffset=0f}
     fun update(data:JsonObject){arena=data.getAsJsonObject("arena")}
     fun clear(){restore(Minecraft.getInstance());arena=null;camera=null}
+    /** True while the local player is still inside the synced battle arena dimension. */
+    fun inArena(mc:Minecraft)=arena?.let{d->mc.level?.dimension()?.location()?.toString()==d.text("dimension")}==true
     private fun restore(mc:Minecraft){
         if(camera!=null&&mc.cameraEntity===camera)mc.player?.let{mc.setCameraEntity(it)}
         previousType?.let{mc.options.cameraType=it};previousType=null

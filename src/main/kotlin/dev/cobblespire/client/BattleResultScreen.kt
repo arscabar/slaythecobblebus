@@ -15,6 +15,7 @@ class BattleResultScreen(data:JsonObject):SpirePane(data){
     private fun loot()=data.getAsJsonObject("loot")
     private fun offers()=loot()?.array("offers")?.map{it.asJsonObject}.orEmpty()
     private val settled get()=loot()?.get("settled")?.asBoolean==true
+    init{SpireMusic.onBattleResult(won,(loot()?.number("revivedCount")?:0)>0)}
     private val cardW get()=minOf((pw-46)/3,(cardH*2.0/3).toInt())
     private val cardH get()=(ph-130).coerceIn(58,160)
     private fun cardX(i:Int)=px+(pw-(3*cardW+20))/2+i*(cardW+10)
