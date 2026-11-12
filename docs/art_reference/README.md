@@ -1,6 +1,6 @@
 # CobbleSpire 이벤트·시설·스토리 일러스트 자산 목록 및 전체 명세
 
-이 디렉터리는 [이벤트·스토리 이미지 제작 인계서](../EVENT_ART_HANDOFF.md) 및 [비전투 이벤트 전체 기획](../EVENT_ART_FULL_CATALOG.md) 기준에 따라 생성된 장면 삽화 자산(총 50종 PNG: 비전투 이벤트·시설·스토리·성장·보상 44종 전수 완료 + 기본 컨셉 2종 + 1막 조우 4종)과 모든 항목의 설명 및 생성 프롬프트를 누락 없이 기록합니다.
+이 디렉터리는 [이벤트·스토리 이미지 제작 인계서](../EVENT_ART_HANDOFF.md), [비전투 이벤트 전체 기획](../EVENT_ART_FULL_CATALOG.md), [마스터 이미지 인계서](../ART_MASTER_HANDOFF.md) 기준에 따라 생성된 장면 삽화 및 지도 배경 자산(총 53종 PNG: 비전투 이벤트·시설·스토리·성장·보상 44종 전수 완료 + 막별 지도 배경·컨셉 5종 전수 완료 + 1막 조우 4종)과 모든 항목의 설명 및 생성 프롬프트를 누락 없이 기록합니다.
 
 - **공통 아트 스타일**: 굵은 잉크 윤곽선(bold hand-inked comic outlines), 각진 형태, 거친 회화적 음영과 명암 대비(rough painterly shading & dramatic chiaroscuro), 마인크래프트 블록형 지형·유적과 Cobblemon 포켓몬의 조화.
 - **공통 제약 사항**: UI·글자·숫자·로고·버튼·테두리·워터마크·인간 트레이너·유혈/고어 배제, 16:9 가로 구도(1376×768 이상 PNG), 주요 피사체 중앙 70% 배치.
@@ -8,13 +8,16 @@
 
 ---
 
-## 1. 기본 컨셉 레퍼런스 (`docs/art_reference/`, 3종 완료)
+## 1. 기본 컨셉 레퍼런스 및 막별 분기 지도 배경 (`docs/art_reference/`, 6종 전원 완료)
 
 | 파일 | 장면 ID / 용도 | 설명 | 상태 |
 |---|---|---|---|
 | [event_pokeball_concept.png](event_pokeball_concept.png) | `EVENT-MYSTERY-BALL` (`Q-DISCOVERY-01`) | 숲속 이끼 낀 블록형 석조 제단 위에서 불길한 빛을 내는 수상한 구형 몬스터볼과 이를 조심스럽게 바라보는 이브이. 어둠 속 두 눈빛이 긴장감을 더하는 기준 이벤트 샘플. | 완료 |
 | [map_background_concept.png](map_background_concept.png) | `MAP-BG-ACT1` | 1막 분기 지도용 양피지 배경 시안 (선·노드·글자 없는 순수 배경, 가장자리에 블록형 숲과 산맥 배치). | 완료 |
-| [map_ui_concept.png](map_ui_concept.png) | 지도 화면 무드 컨셉 | 1막 분기 지도 전체 레이아웃 참고용 무드 시안 (배경에 경로가 구워져 있으므로 실제 구현 자산으로는 `map_background_concept.png` + 동적 렌더링 사용). | 완료 |
+| [map_background_act2_m.png](map_background_act2_m.png) | `MAP-BG-ACT2-M` | 2막 마그마 경로 분기 지도용 양피지 배경 (선·노드·글자 없는 순수 배경, 가장자리에 화산 현무암 절벽·검은 바위·용암 균열 배치). | 완료 |
+| [map_background_act2_a.png](map_background_act2_a.png) | `MAP-BG-ACT2-A` | 2막 아쿠아 경로 분기 지도용 양피지 배경 (선·노드·글자 없는 순수 배경, 가장자리에 해안 절벽·침수된 프리즈머린 신전·파도 배치). | 완료 |
+| [map_background_act3.png](map_background_act3.png) | `MAP-BG-ACT3` | 3막 분기 지도용 양피지 배경 (선·노드·글자 없는 순수 배경, 가장자리에 눈 덮인 고대 석조 성채·오벨리스크·보랏빛 균열 배치). | 완료 |
+| [map_ui_concept.png](map_ui_concept.png) | 지도 화면 무드 컨셉 | 1막 분기 지도 전체 레이아웃 참고용 무드 시안 (배경에 경로가 구워져 있으므로 실제 구현 자산으로는 `map_background_*.png` + 동적 렌더링 사용). | 완료 |
 
 ---
 

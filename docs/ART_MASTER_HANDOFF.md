@@ -16,10 +16,10 @@
 
 | 자산 | 제작 요구와 장면 | 적용 위치 / 상태 |
 |---|---|---|
-| MAP-BG-ACT1 | 글자·경로·노드 없는 양피지, 가장자리에 블록형 숲·낡은 지형, 중앙 낮은 대비 | 1막; 배경 시안 존재, 실게임 규격 미검증 |
-| MAP-BG-ACT2-M | 동일한 구도·안전 영역, 가장자리에 화산·검은 바위 | 2막 마그마 경로; 제안 |
-| MAP-BG-ACT2-A | 동일한 구도·안전 영역, 가장자리에 해안·잠긴 유적 | 2막 아쿠아 경로; 제안 |
-| MAP-BG-ACT3 | 동일한 구도·안전 영역, 차가운 유적과 보랏빛 | 3막; 제안 |
+| MAP-BG-ACT1 | 글자·경로·노드 없는 양피지, 가장자리에 블록형 숲·낡은 지형, 중앙 낮은 대비 | 1막; [map_background_concept.png](art_reference/map_background_concept.png) |
+| MAP-BG-ACT2-M | 동일한 구도·안전 영역, 가장자리에 화산·검은 바위 | 2막 마그마 경로; [map_background_act2_m.png](art_reference/map_background_act2_m.png) |
+| MAP-BG-ACT2-A | 동일한 구도·안전 영역, 가장자리에 해안·잠긴 유적 | 2막 아쿠아 경로; [map_background_act2_a.png](art_reference/map_background_act2_a.png) |
+| MAP-BG-ACT3 | 동일한 구도·안전 영역, 차가운 유적과 보랏빛 | 3막; [map_background_act3.png](art_reference/map_background_act3.png) |
 | MAP-SCROLL | 지도 펼침/접힘의 양쪽 손잡이, 종이 가장자리·그림자. 배경과 별도, 늘어날 때 깨지지 않게 | 지도 열고 닫을 때; 제안 |
 | MAP-NODE-SET | 일반전·엘리트·상점·휴식·보물볼·물음표·보스·현재 위치·핑, 각 아이콘을 독립 투명 자산으로 제작 | 지도 노드; 제안 |
 | MAP-NODE-STATES | 기본·선택 가능·호버·선택·현재·방문·불가·포커스. 색 외 모양/테두리로 구분 | 노드별 동적 표시; 제안 |
