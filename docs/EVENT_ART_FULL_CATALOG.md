@@ -34,10 +34,10 @@
 | Q-HAZARD-01 | 좁은 블록 계곡 위 갈라진 바위를 올려다보는 포켓몬 | 낙석 직전, 긴장; `EVENT_HAZARD_FALL_ROCK` 유형 참고 | [event_rockfall.png](art_reference/events/event_rockfall.png) |
 | Q-HAZARD-02 | 깊은 틈과 흔들리는 나무다리 앞에 멈춘 포켓몬 | 위험한 길을 건널지 고민 | [q_hazard_02.png](art_reference/events/q_hazard_02.png) |
 | Q-HAZARD-03 | 가시 덤불 너머 희미한 빛을 바라보는 포켓몬 | 대가가 있을지 모를 접근, 상처 묘사 없음 | [q_hazard_03.png](art_reference/events/q_hazard_03.png) |
-| Q-HAZARD-04 | 무너지는 석조 문 앞에서 뒤로 물러선 포켓몬 | 돌이 떨어질 듯한 순간, 피해 확정 아님 | 시안 대기 (`art_reference/README.md` 명세 수록) |
+| Q-HAZARD-04 | 무너지는 석조 문 앞에서 뒤로 물러선 포켓몬 | 돌이 떨어질 듯한 순간, 피해 확정 아님 | [q_hazard_04.png](art_reference/events/q_hazard_04.png) |
 | Q-REWARD-01 | 먼지 쌓인 상자 곁에 흩어진 동전과 조심하는 포켓몬 | 금화 가능성을 시각적으로 암시; 액수·실제 보상 미정 | [q_reward_01.png](art_reference/events/q_reward_01.png) |
-| Q-REWARD-02 | 수풀에 가려진 닫힌 보물볼과 주변을 살피는 포켓몬 | 보물을 열지 고민; 내용물 비공개 | 시안 대기 (`art_reference/README.md` 명세 수록) |
-| Q-REWARD-03 | 제단 위 천으로 덮인 작은 물건과 호기심 어린 포켓몬 | 알 수 없는 도구; 특정 유물·효과 확정 금지 | 시안 대기 (`art_reference/README.md` 명세 수록) |
+| Q-REWARD-02 | 수풀에 가려진 닫힌 보물볼과 주변을 살피는 포켓몬 | 보물을 열지 고민; 내용물 비공개 | [q_reward_02.png](art_reference/events/q_reward_02.png) |
+| Q-REWARD-03 | 제단 위 천으로 덮인 작은 물건과 호기심 어린 포켓몬 | 알 수 없는 도구; 특정 유물·효과 확정 금지 | [q_reward_03.png](art_reference/events/q_reward_03.png) |
 
 ## 물음표 사건: 만남·전투 발생·영입
 
@@ -46,13 +46,13 @@
 | 제안 ID | 장면과 구도 | 감정·상황 | 생성된 시안 파일 |
 |---|---|---|---|
 | Q-MEET-01 | 숲길 양쪽에서 서로 거리를 두고 살펴보는 야생 포켓몬과 동료 | 만남과 경계, 영입 확정 아님 | [event_wild_meeting.png](art_reference/events/event_wild_meeting.png) |
-| Q-MEET-02 | 나뭇잎 아래 몸을 숨긴 작은 야생 포켓몬과 이를 발견한 동료 | 도와줄지 지켜볼지 고민; 상처 없음 | 시안 대기 (`art_reference/README.md` 명세 수록) |
-| Q-MEET-03 | 작은 공터에서 나란히 있는 야생 포켓몬과 탐험 파티 | 신뢰를 쌓는 가능성; 종과 결과 미정 | 시안 대기 (`art_reference/README.md` 명세 수록) |
+| Q-MEET-02 | 나뭇잎 아래 몸을 숨긴 작은 야생 포켓몬과 이를 발견한 동료 | 도와줄지 지켜볼지 고민; 상처 없음 | [q_meet_02.png](art_reference/events/q_meet_02.png) |
+| Q-MEET-03 | 작은 공터에서 나란히 있는 야생 포켓몬과 탐험 파티 | 신뢰를 쌓는 가능성; 종과 결과 미정 | [q_meet_03.png](art_reference/events/q_meet_03.png) |
 | Q-COMBAT-01 | 동굴 그늘에서 두 눈이 나타나고 포켓몬이 경계 | 전투 가능성이 느껴지는 조우, 적 확정 전 | [event_encounter.png](art_reference/events/event_encounter.png) |
-| Q-COMBAT-02 | 버려진 물건 앞에서 서로 오해하듯 대치하는 포켓몬 둘 | 갈등 직전, 실제 공격 장면 없음 | 시안 대기 (`art_reference/README.md` 명세 수록) |
-| Q-RECRUIT-01 | 파티를 향해 조심스럽게 다가오는 야생 포켓몬 | 영입 선택 직전, 가입 확정 아님 | 시안 대기 (`art_reference/README.md` 명세 수록) |
-| Q-RECRUIT-02 | 현재 파티와 새 후보가 서로 마주 보는 장면 | 파티가 가득 찼을 때의 교체 논의; 특정 멤버 제외 암시 금지 | 시안 대기 (`art_reference/README.md` 명세 수록) |
-| Q-SWAP-01 | 여행 중 서로 다른 길 앞에서 마주 보는 포켓몬들 | 상점·이벤트 교체의 감정적 표현, 규칙·결과 미정 | 시안 대기 (`art_reference/README.md` 명세 수록) |
+| Q-COMBAT-02 | 버려진 물건 앞에서 서로 오해하듯 대치하는 포켓몬 둘 | 갈등 직전, 실제 공격 장면 없음 | [q_combat_02.png](art_reference/events/q_combat_02.png) |
+| Q-RECRUIT-01 | 파티를 향해 조심스럽게 다가오는 야생 포켓몬 | 영입 선택 직전, 가입 확정 아님 | [q_recruit_01.png](art_reference/events/q_recruit_01.png) |
+| Q-RECRUIT-02 | 현재 파티와 새 후보가 서로 마주 보는 장면 | 파티가 가득 찼을 때의 교체 논의; 특정 멤버 제외 암시 금지 | [q_recruit_02.png](art_reference/events/q_recruit_02.png) |
+| Q-SWAP-01 | 여행 중 서로 다른 길 앞에서 마주 보는 포켓몬들 | 상점·이벤트 교체의 감정적 표현, 규칙·결과 미정 | [q_swap_01.png](art_reference/events/q_swap_01.png) |
 
 ## 진화·권한·성장
 
@@ -61,10 +61,10 @@
 | 제안 ID | 장면과 구도 | 감정·상황 | 생성된 시안 파일 |
 |---|---|---|---|
 | PROGRESS-EVOLUTION-01 | 고대 문양이 새겨진 블록 제단을 포켓몬이 바라봄 | 진화 기회의 가능성, 분기·종 미정 | [event_shrine.png](art_reference/events/event_shrine.png) |
-| PROGRESS-BADGE-01 | 작은 배지 모양 물건을 주의 깊게 보는 포켓몬 | 권한과 연결 가능한 상징 후보; 실제 배지 외형 미정 | 시안 대기 (`art_reference/README.md` 명세 수록) |
-| PROGRESS-BRANCH-01 | 갈라지는 빛 두 줄기 앞의 포켓몬 실루엣 | 진화 분기 선택 전, 특정 결과를 보여주지 않음 | 시안 대기 (`art_reference/README.md` 명세 수록) |
-| PROGRESS-UPGRADE-01 | 휴식처의 연습 표적을 바라보는 포켓몬 | 기술 강화 준비; 특정 기술·수치 확정 금지 | 시안 대기 (`art_reference/README.md` 명세 수록) |
-| PROGRESS-MEGA-01 | 전장에 나가기 전 희미한 빛을 바라보는 포켓몬 | 메가 관련 분위기 후보; 실제 각성·폼은 규칙 검증 후 | 시안 대기 (`art_reference/README.md` 명세 수록) |
+| PROGRESS-BADGE-01 | 작은 배지 모양 물건을 주의 깊게 보는 포켓몬 | 권한과 연결 가능한 상징 후보; 실제 배지 외형 미정 | [progress_badge_01.png](art_reference/events/progress_badge_01.png) |
+| PROGRESS-BRANCH-01 | 갈라지는 빛 두 줄기 앞의 포켓몬 실루엣 | 진화 분기 선택 전, 특정 결과를 보여주지 않음 | [progress_branch_01.png](art_reference/events/progress_branch_01.png) |
+| PROGRESS-UPGRADE-01 | 휴식처의 연습 표적을 바라보는 포켓몬 | 기술 강화 준비; 특정 기술·수치 확정 금지 | [progress_upgrade_01.png](art_reference/events/progress_upgrade_01.png) |
+| PROGRESS-MEGA-01 | 전장에 나가기 전 희미한 빛을 바라보는 포켓몬 | 메가 관련 분위기 후보; 실제 각성·폼은 규칙 검증 후 | [progress_mega_01.png](art_reference/events/progress_mega_01.png) |
 
 ## 시설·보상 및 모험 진행
 
@@ -81,7 +81,7 @@
 | FAC-SHOP-01 | 상점 진입 | 여행 물건이 진열된 블록형 가판대와 물건을 살피는 포켓몬 | [facility_shop.png](art_reference/events/facility_shop.png) |
 | FAC-SHOP-02 | 기술 제거 선택 | 작업대 위 빈 카드 모양 소품을 살피는 포켓몬; 글자·구체 효과 없음 | 시안 대기 (`art_reference/README.md` 명세 수록) |
 | FAC-REST-01 | 휴식처 진입·회복 선택 | 블록형 모닥불 곁에 모인 포켓몬, 편안하고 따뜻한 빛 | [facility_rest.png](art_reference/events/facility_rest.png) |
-| FAC-REST-02 | 휴식처 기술 강화 선택 | 안전한 야영지 근처 연습 표적을 바라보는 포켓몬 | 시안 대기 (`art_reference/README.md` 명세 수록) |
+| FAC-REST-02 | 휴식처 기술 강화 선택 | 안전한 야영지 근처 연습 표적을 바라보는 포켓몬 | [progress_upgrade_01.png](art_reference/events/progress_upgrade_01.png) |
 | FAC-TREASURE-01 | 보물볼 진입 | 제단의 닫힌 보물볼, 주변을 살피는 포켓몬; 내용물 감춤 | [facility_treasure.png](art_reference/events/facility_treasure.png) |
 | FAC-TREASURE-02 | 보물 선택 포기 | 닫힌 보물볼을 뒤로하고 떠나는 실루엣; 실제 분기 필요 시만 | 시안 대기 (`art_reference/README.md` 명세 수록) |
 | REWARD-BATTLE-01 | 전투 후 보상 | 정돈된 여행 물품과 쉬고 있는 포켓몬; 특정 보상 확정 금지 | 시안 대기 (`art_reference/README.md` 명세 수록) |
