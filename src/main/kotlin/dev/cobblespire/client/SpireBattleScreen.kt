@@ -71,7 +71,7 @@ class SpireBattleScreen(data:JsonObject):SpirePane(data){
             control(px+12+i*(partyW+4),py+ph-28,partyW,20,(if(i==data.number("active"))"● " else "↔ ")+short(SpireWidgets.name(c),partyW-22),enabled){SpireMusic.switchPokemon();command("switch"){addProperty("index",i)}}
                 .also{it.selected=i==data.number("active")}.tooltip=Tooltip.create(Component.literal("${c.number("hp")}/${c.number("maxHp")} HP\n교체: 남은 손패 모두 버림 → 새로 5장\n"+if(data.get("forced")?.asBoolean==true)"기절 교체 무료"else "일반 교체 에너지 1 · 라운드당 1회"))
         }
-        control(px+pw-endW-pingW-16,py+ph-28,pingW,20,"📌 핑",enemies().getOrNull(target)?.number("hp",0)?:0>0){sendPing(hand().getOrNull(hover))}
+        control(px+pw-endW-pingW-16,py+ph-28,pingW,20,"◎ 핑",enemies().getOrNull(target)?.number("hp",0)?:0>0){sendPing(hand().getOrNull(hover))}
             .tooltip=Tooltip.create(Component.literal("선택한 적에게 넣을 수 있는 예상 피해량 핑 전송\n(손패 카드를 우클릭해도 핑 전송)"))
         val endLabel=if(ended)"아군 대기 (${data.number("endedCount")}/${data.number("alivePlayers")})"else "턴 종료  ▸"
         control(px+pw-endW-12,py+ph-28,endW,20,endLabel,!ended&&data.get("forced")?.asBoolean!=true){SpireMusic.turnEnd();command("end")}.primary=!ended
@@ -142,7 +142,7 @@ class SpireBattleScreen(data:JsonObject):SpirePane(data){
                 val sMin=ep.sumOf{it.number("minDamage")};val sMax=ep.sumOf{it.number("maxDamage")}
                 val lethal=sMax>=e.number("hp")&&e.number("hp")>0
                 SpireSkin.panel(g,x,py+107,ew,24,if(lethal)0x4ADE80 else 0xE6B84D)
-                text(g,short((if(lethal)"📌 처치각! "else "📌 합계 ")+"${sMin}~${sMax}뎀",ew-8),x+4,py+110,if(lethal)0x6EE7B7 else 0xF7D379)
+                text(g,short((if(lethal)"◎ 처치각! "else "◎ 합계 ")+"${sMin}~${sMax}뎀",ew-8),x+4,py+110,if(lethal)0x6EE7B7 else 0xF7D379)
                 val byPlayer=ep.joinToString(" · "){pg->"${if(pg.get("isSelf")?.asBoolean==true)"나"else pg.text("playerName")} ${pg.number("minDamage")}~${pg.number("maxDamage")}"}
                 text(g,short(byPlayer,ew-8),x+4,py+120,0xDCECE8)
             }
