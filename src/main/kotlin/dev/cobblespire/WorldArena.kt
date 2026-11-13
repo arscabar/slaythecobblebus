@@ -20,43 +20,48 @@ import java.util.UUID
 
 /** Dedicated world presentation. These unowned entities never enter a player's Pokemon store. */
 class WorldArena(private val server:MinecraftServer){
-    data class Scene(val cx:Int,val entities:MutableMap<String,PokemonEntity> = mutableMapOf())
+    data class Scene(val cx:Int,val entities:MutableMap<String,PokemonEntity> = mutableMapOf(),val players:MutableSet<UUID> = mutableSetOf())
     private val scenes=mutableMapOf<UUID,Scene>()
+    private val playerSession=mutableMapOf<UUID,Pair<UUID,Int>>()
     private var nextSlot=0
     private val presentationIds=mutableSetOf<UUID>()
     fun presentation(id:UUID)=id in presentationIds
     private fun remove(e:PokemonEntity){presentationIds.remove(e.uuid);e.discard()}
     private val world get()=requireNotNull(server.getLevel(KEY)){"월드 경기장 차원이 없습니다. 서버를 다시 시작해 주세요."}
     private fun record(id:UUID)=server.getWorldPath(LevelResource.ROOT).resolve("data/cobblespire-returns/$id.json")
-    fun enter(p:ServerPlayer){
-        require(p.uuid !in scenes)
+    private fun seatZ(slot:Int)=-9.0+slot*6.0
+    fun enter(p:ServerPlayer,sessionId:UUID=p.uuid,slot:Int=0){
+        require(p.uuid !in playerSession)
         require(p.level().dimension()!=KEY){"원래 위치 복구 후 다시 시작하세요."}
-        val w=world;val scene=Scene(nextSlot++*128)
+        val w=world;val isNew=sessionId !in scenes;val scene=scenes.getOrPut(sessionId){Scene(nextSlot++*128)}
         val returnData=JsonObject().apply{addProperty("dimension",p.level().dimension().location().toString());addProperty("x",p.x);addProperty("y",p.y);addProperty("z",p.z);addProperty("yaw",p.yRot);addProperty("pitch",p.xRot)}
         val path=record(p.uuid);Files.createDirectories(path.parent)
         val tmp=path.resolveSibling(path.fileName.toString()+".tmp")
         Files.writeString(tmp,returnData.toString());Files.move(tmp,path,StandardCopyOption.REPLACE_EXISTING)
-        scenes[p.uuid]=scene
+        scene.players.add(p.uuid);playerSession[p.uuid]=sessionId to slot
         try{
-            // Build only in our empty dimension, never in the player's existing world.
-            for(x in -24..24)for(z in -20..20){
-                val edge=x in setOf(-24,24)||z in setOf(-20,20)
-                val material=if(edge)Blocks.POLISHED_DEEPSLATE else if((x/4+z/4)%2==0)Blocks.SMOOTH_SANDSTONE else Blocks.CUT_SANDSTONE
-                w.setBlock(BlockPos(scene.cx+x,63,z),material.defaultBlockState(),3)
-                if(edge)w.setBlock(BlockPos(scene.cx+x,64,z),Blocks.DEEPSLATE_BRICK_WALL.defaultBlockState(),3)
+            if(isNew){
+                // Build only in our empty dimension, never in the player's existing world.
+                for(x in -24..24)for(z in -20..20){
+                    val edge=x in setOf(-24,24)||z in setOf(-20,20)
+                    val material=if(edge)Blocks.POLISHED_DEEPSLATE else if((x/4+z/4)%2==0)Blocks.SMOOTH_SANDSTONE else Blocks.CUT_SANDSTONE
+                    w.setBlock(BlockPos(scene.cx+x,63,z),material.defaultBlockState(),3)
+                    if(edge)w.setBlock(BlockPos(scene.cx+x,64,z),Blocks.DEEPSLATE_BRICK_WALL.defaultBlockState(),3)
+                }
+                for(x in listOf(-21,21))for(z in listOf(-17,17)){
+                    for(y in 64..69)w.setBlock(BlockPos(scene.cx+x,y,z),Blocks.DEEPSLATE_BRICKS.defaultBlockState(),3)
+                    w.setBlock(BlockPos(scene.cx+x,70,z),Blocks.SEA_LANTERN.defaultBlockState(),3)
+                }
+                for(z in -15..15){w.setBlock(BlockPos(scene.cx-16,64,z),Blocks.CHISELED_STONE_BRICKS.defaultBlockState(),3)}
             }
-            for(x in listOf(-21,21))for(z in listOf(-17,17)){
-                for(y in 64..69)w.setBlock(BlockPos(scene.cx+x,y,z),Blocks.DEEPSLATE_BRICKS.defaultBlockState(),3)
-                w.setBlock(BlockPos(scene.cx+x,70,z),Blocks.SEA_LANTERN.defaultBlockState(),3)
-            }
-            for(z in -15..15){w.setBlock(BlockPos(scene.cx-16,64,z),Blocks.CHISELED_STONE_BRICKS.defaultBlockState(),3)}
-            p.teleportTo(w,scene.cx-20.5,64.0,9.5,-115f,12f)
+            p.teleportTo(w,scene.cx-20.5,64.0,seatZ(slot),-105f,12f)
         }catch(e:Exception){leave(p);throw e}
     }
     fun sync(p:ServerPlayer,data:JsonObject):JsonObject{
-        val s=requireNotNull(scenes[p.uuid]);val w=world
-        val party=data.getAsJsonArray("party");val active=party[data.number("active")].asJsonObject
-        val slots=mutableListOf(Triple(active,s.cx.toDouble(),6.0))
+        val (sessionId,_)=requireNotNull(playerSession[p.uuid]);val s=requireNotNull(scenes[sessionId]);val w=world
+        val allies=data.array("arenaAllies")?.map{it.asJsonObject}?:listOf(data.getAsJsonArray("party")[data.number("active")].asJsonObject)
+        val slots=mutableListOf<Triple<JsonObject,Double,Double>>()
+        allies.forEachIndexed{i,a->slots.add(Triple(a,s.cx+(i-(allies.size-1)/2.0)*5.5,6.0))}
         val enemies=data.getAsJsonArray("enemies")
         enemies.forEachIndexed{i,v->slots.add(Triple(v.asJsonObject,s.cx+(i-(enemies.size()-1)/2.0)*7,-6.0))}
         val alive=slots.filter{it.first.number("hp")>0}.map{it.first.text("uid")}.toSet()
@@ -78,17 +83,22 @@ class WorldArena(private val server:MinecraftServer){
             e.customName=Component.literal(c.text("name")+"  ${c.number("hp")}/${c.number("maxHp")} HP")
             e.isCustomNameVisible=true
         }
+        val extra=(allies.size-1).coerceAtLeast(0)
         return JsonObject().apply{
-            addProperty("dimension",KEY.location().toString());addProperty("cameraX",s.cx-12.0);addProperty("cameraY",79.0);addProperty("cameraZ",19.0)
+            addProperty("dimension",KEY.location().toString());addProperty("cameraX",s.cx-12.0-extra*1.5);addProperty("cameraY",79.0+extra*1.2);addProperty("cameraZ",19.0+extra*1.8)
             addProperty("yaw",-147.72);addProperty("pitch",44.0)
             add("entities",JsonObject().also{o->s.entities.forEach{(k,v)->o.addProperty(k,v.id)}})
         }
     }
-    fun tick(){scenes.forEach{(id,s)->server.playerList.getPlayer(id)?.let{p->
+    fun tick(){playerSession.forEach{(id,pair)->val s=scenes[pair.first]?:return@forEach;server.playerList.getPlayer(id)?.let{p->
         if(p.level().dimension()!=KEY||p.x !in (s.cx-23.0)..(s.cx-17.0)||p.z !in -17.0..17.0||p.y<63||p.y>70)
-            p.teleportTo(world,s.cx-20.5,64.0,9.5,-115f,12f)
+            p.teleportTo(world,s.cx-20.5,64.0,seatZ(pair.second),-105f,12f)
     }}}
-    fun leave(p:ServerPlayer){scenes.remove(p.uuid)?.entities?.values?.forEach(::remove);recover(p)}
+    fun leave(p:ServerPlayer){
+        val (sessionId,_)=playerSession.remove(p.uuid)?:run{recover(p);return}
+        scenes[sessionId]?.let{s->s.players.remove(p.uuid);if(s.players.isEmpty())scenes.remove(sessionId)?.entities?.values?.forEach(::remove)}
+        recover(p)
+    }
     fun recover(p:ServerPlayer){
         val path=record(p.uuid)
         if(!Files.exists(path)){
@@ -101,7 +111,7 @@ class WorldArena(private val server:MinecraftServer){
         p.teleportTo(target,d.get("x").asDouble,d.get("y").asDouble,d.get("z").asDouble,d.get("yaw").asFloat,d.get("pitch").asFloat)
         Files.delete(path)
     }
-    fun close(){scenes.keys.toList().forEach{server.playerList.getPlayer(it)?.let(::leave)}}
+    fun close(){playerSession.keys.toList().forEach{server.playerList.getPlayer(it)?.let(::leave)}}
     companion object {
         val KEY:ResourceKey<Level> = ResourceKey.create(Registries.DIMENSION,ResourceLocation.fromNamespaceAndPath("cobblespire","arena"))
         const val TAG="cobblespire.presentation"

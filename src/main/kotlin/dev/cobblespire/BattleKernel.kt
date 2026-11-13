@@ -60,14 +60,23 @@ class SpireBattle(val players:List<SpireBattlePlayer>,val enemies:List<SpireComb
     private val hitRandom=Random(seed)
     val events=mutableListOf<SpireBattleEvent>()
     private val requests=linkedSetOf<Pair<UUID,String>>()
+    private val departed=mutableSetOf<UUID>()
     var round=1;private set
     var revision=0;private set
     var phase=SpireBattlePhase.PLAYER;private set
     var victoryCount=0;private set
     var intents:List<EnemyIntent> = emptyList()
     val winningSurvivors=mutableSetOf<String>()
+    private fun activePlayers()=players.filter{it.id !in departed}
     private fun event(name:String,actor:String="",target:String="",amount:Int=0,move:SpireMove?=null,multiplier:Double=1.0){val e=SpireBattleEvent(name,round,actor,target,amount,move?.id.orEmpty(),move?.type.orEmpty(),multiplier);events.add(e);hook.dispatch(e,this)}
-    private fun participant(id:UUID)=requireNotNull(players.firstOrNull{it.id==id}){"모험 참가자가 아닙니다."}
+    private fun participant(id:UUID)=requireNotNull(players.firstOrNull{it.id==id&&it.id !in departed}){"모험 참가자가 아닙니다."}
+    fun removePlayer(id:UUID){
+        val p=players.firstOrNull{it.id==id}?:return
+        if(!departed.add(id))return
+        p.party.forEach{it.hp=0};p.ended=true;revision++
+        if(decideResult())return
+        if(phase==SpireBattlePhase.PLAYER&&activePlayers().filter{it.alive}.all{it.ended})enemyPhase()
+    }
     private fun validateRequest(id:UUID,request:String,token:Int){
         require(request.length in 1..80);require(id to request !in requests){"이미 처리한 요청입니다."}
         require(token==revision){"화면이 갱신되었습니다."};require(phase==SpireBattlePhase.PLAYER){"플레이어 차례가 아닙니다."}
@@ -117,7 +126,7 @@ class SpireBattle(val players:List<SpireBattlePlayer>,val enemies:List<SpireComb
         validateRequest(id,request,token);val p=participant(id);require(!p.ended);require(!p.forcedSwitch){"먼저 생존한 포켓몬으로 교체하세요."}
         p.party.forEach{it.deck?.finishTurn(round)}
         p.ended=true;commit(id,request)
-        if(players.filter{it.alive}.all{it.ended})enemyPhase()
+        if(activePlayers().filter{it.alive}.all{it.ended})enemyPhase()
     }
     private fun enemyPhase(){
         phase=SpireBattlePhase.ENEMY;event("ENEMY_PHASE_START")
@@ -128,7 +137,7 @@ class SpireBattle(val players:List<SpireBattlePlayer>,val enemies:List<SpireComb
             val canAct="sleep" !in actor.statuses&&!("paralysis" in actor.statuses&&hitRandom.nextInt(100)<25)&&effects.beforeAction(actor,move,this)
             if(canAct){
                 event("ENEMY_MOVE_STARTED",actor.uid,move.id)
-                val targets=if(move.selfTarget)listOf(actor)else players.map{it.active}.filter{it.alive}
+                val targets=if(move.selfTarget)listOf(actor)else activePlayers().map{it.active}.filter{it.alive}
                 var inflicted=0
                 for(target in targets){
                     if(effects.canHit(actor,target,move,this)&&hitRandom.nextInt(100)<effects.accuracy(actor,target,move).coerceIn(0,100)){
@@ -151,22 +160,22 @@ class SpireBattle(val players:List<SpireBattlePlayer>,val enemies:List<SpireComb
         }
         if(actions.isEmpty()){event("ENEMY_PHASE_END");if(decideResult())return}
         // Active-only periodic effects. Bench timers and poison/burn HP do not tick.
-        for(mon in players.map{it.active}.filter{it.alive}+enemies.filter{it.alive}){
+        for(mon in activePlayers().map{it.active}.filter{it.alive}+enemies.filter{it.alive}){
             effects.periodic(mon,this)
             mon.statuses.values.filter{it.id in setOf("sleep","paralysis","confusion")&&it.appliedRound<round}.forEach{it.remaining--}
             mon.statuses.entries.removeIf{it.value.id in setOf("sleep","paralysis","confusion")&&it.value.remaining<=0}
         }
         event("ROUND_END");if(decideResult())return
         round++;phase=SpireBattlePhase.PLAYER
-        players.forEach{it.ended=false;it.normalSwitchUsed=false;it.energy=3;if(it.active.alive)it.active.deck?.beginTurn(round)}
+        activePlayers().forEach{it.ended=false;it.normalSwitchUsed=false;it.energy=3;if(it.active.alive)it.active.deck?.beginTurn(round)}
         revision++;event("ROUND_START")
     }
     private fun decideResult():Boolean {
         if(phase in setOf(SpireBattlePhase.VICTORY,SpireBattlePhase.DEFEAT))return true
-        if(players.none{it.alive}){phase=SpireBattlePhase.DEFEAT;players.flatMap{it.party}.forEach{it.endBattle()};event("BATTLE_LOST");return true}
+        if(activePlayers().none{it.alive}){phase=SpireBattlePhase.DEFEAT;activePlayers().flatMap{it.party}.forEach{it.endBattle()};event("BATTLE_LOST");return true}
         if(enemies.none{it.alive}){
             phase=SpireBattlePhase.VICTORY;victoryCount++
-            val all=players.flatMap{it.party};all.filter{it.alive}.forEach{winningSurvivors.add(it.uid)}
+            val all=activePlayers().flatMap{it.party};all.filter{it.alive}.forEach{winningSurvivors.add(it.uid)}
             event("PROGRESSION");all.filter{it.uid !in winningSurvivors}.forEach{it.revive(0.2)}
             event("BATTLE_WON");all.forEach{it.endBattle()};return true
         }
@@ -177,6 +186,17 @@ class SpireBattle(val players:List<SpireBattlePlayer>,val enemies:List<SpireComb
 
 object SpirePartyRules {
     fun disjoint(types:List<Set<String>>):Boolean=types.indices.all{i->types.indices.all{j->i==j||types[i].intersect(types[j]).isEmpty()}}
+    fun stageBaseBudget(act:Int,tier:String,encounterId:String):Int{
+        val late=tier in setOf("ELITE","BOSS")||encounterId.endsWith("03")||encounterId.endsWith("04")||encounterId.endsWith("05")||encounterId.endsWith("06")||encounterId.endsWith("07")
+        return when(act){
+            1->if(late)240 else 180
+            2->if(late)455 else 368
+            else->if(late)760 else 640
+        }
+    }
+    fun gradeMultiplier(tier:String):Double=when(tier){"ELITE"->1.55;"BOSS"->2.4;else->1.0}
+    fun encounterHpBudget(act:Int,tier:String,encounterId:String,weights:List<Double>,players:Int):List<Int> =
+        hpBudget(stageBaseBudget(act,tier,encounterId),gradeMultiplier(tier),weights,players)
     fun hpBudget(base:Int,grade:Double,weights:List<Double>,players:Int):List<Int>{
         require(players in 1..4&&weights.size in 1..3&&weights.all{it>0})
         val party=listOf(1.0,1.85,2.70,3.55)[players-1]

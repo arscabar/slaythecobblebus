@@ -65,14 +65,16 @@ class SpireBattleScreen(data:JsonObject):SpirePane(data){
             if(phase=="VICTORY")control(px+12,py+ph-28,(pw-30)/2,20,"다음 시험 전투"){command("next")}
             control(px+pw/2+3,py+ph-28,(pw-30)/2-3,20,"시험 모험 종료"){command("quit")};return
         }
+        val ended=data.get("ended")?.asBoolean==true
         val endW=102;val partyW=(pw-endW-36)/3
-        party().forEachIndexed{i,c->val enabled=c.number("hp")>0&&i!=data.number("active")&&(data.get("forced")?.asBoolean==true||data.get("switchUsed")?.asBoolean!=true&&data.number("energy")>0)
+        party().forEachIndexed{i,c->val enabled=(!ended||data.get("forced")?.asBoolean==true)&&c.number("hp")>0&&i!=data.number("active")&&(data.get("forced")?.asBoolean==true||data.get("switchUsed")?.asBoolean!=true&&data.number("energy")>0)
             control(px+12+i*(partyW+4),py+ph-28,partyW,20,(if(i==data.number("active"))"● " else "↔ ")+short(SpireWidgets.name(c),partyW-22),enabled){SpireMusic.switchPokemon();command("switch"){addProperty("index",i)}}
                 .also{it.selected=i==data.number("active")}.tooltip=Tooltip.create(Component.literal("${c.number("hp")}/${c.number("maxHp")} HP\n교체: 남은 손패 모두 버림 → 새로 5장\n"+if(data.get("forced")?.asBoolean==true)"기절 교체 무료"else "일반 교체 에너지 1 · 라운드당 1회"))
         }
-        control(px+pw-endW-12,py+ph-28,endW,20,"턴 종료  ▸",data.get("forced")?.asBoolean!=true){SpireMusic.turnEnd();command("end")}.primary=true
+        val endLabel=if(ended)"아군 대기 (${data.number("endedCount")}/${data.number("alivePlayers")})"else "턴 종료  ▸"
+        control(px+pw-endW-12,py+ph-28,endW,20,endLabel,!ended&&data.get("forced")?.asBoolean!=true){SpireMusic.turnEnd();command("end")}.primary=!ended
     }
-    private fun canPlay(c:JsonObject)=!busy()&&data.text("phase")=="PLAYER"&&active.number("hp")>0&&data.number("energy")>=c.number("cost")&&(c.get("trainer")?.asBoolean==true||!SpireWidgets.status(active).contains("수면"))
+    private fun canPlay(c:JsonObject)=!busy()&&data.text("phase")=="PLAYER"&&data.get("ended")?.asBoolean!=true&&active.number("hp")>0&&data.number("energy")>=c.number("cost")&&(c.get("trainer")?.asBoolean==true||!SpireWidgets.status(active).contains("수면"))
     private fun play(index:Int){val c=hand().getOrNull(index)?:return;if(canPlay(c)){SpireMusic.cardPlay();command("move"){addProperty("handIndex",index);addProperty("instance",c.get("instance").asLong);addProperty("target",target)}}else if(!busy())SpireMusic.uiError()}
     private fun hovered(mx:Double,my:Double):Int{
         if(busy())return -1
@@ -102,7 +104,18 @@ class SpireBattleScreen(data:JsonObject):SpirePane(data){
     override fun content(g:GuiGraphics,mx:Int,my:Int,delta:Float){
         val now=System.currentTimeMillis();controls.forEach{(b,enabled)->b.active=enabled&&!busy()}
         text(g,"COBBLESPIRE",px+12,py+9,0xE7C98F)
-        text(g,"${data.number("round")}턴 · "+if(data.text("phase")=="PLAYER")"내 차례"else if(data.text("phase")=="VICTORY")"승리"else data.text("phase"),px+pw/2-30,py+9,0x8DDED2)
+        val ended=data.get("ended")?.asBoolean==true
+        val turnText=when{data.text("phase")=="VICTORY"->"승리";data.text("phase")!="PLAYER"->data.text("phase");ended->"아군 대기 (${data.number("endedCount")}/${data.number("alivePlayers")})";else->"내 차례"}
+        text(g,"${data.number("round")}턴 · $turnText",px+pw/2-36,py+9,if(ended)0xE7C98F else 0x8DDED2)
+        val allies=data.array("allies")?.map{it.asJsonObject}.orEmpty()
+        if(allies.isNotEmpty()){
+            val strip=allies.joinToString("  |  "){a->
+                val act=a.getAsJsonObject("active")
+                val st=when{a.get("alive")?.asBoolean!=true->"기절";a.get("ended")?.asBoolean==true->"완료";else->"행동"}
+                "${a.text("name")}: ${SpireWidgets.name(act)} ${act.number("hp")}/${act.number("maxHp")} ($st)"
+            }
+            text(g,short("팀원 · $strip",pw-24),px+12,py+109,0xA8D5E2)
+        }
         val l=layout()
         val list=enemies();val ew=enemyWidth()
         list.forEachIndexed{i,e->val x=enemyX(i)
