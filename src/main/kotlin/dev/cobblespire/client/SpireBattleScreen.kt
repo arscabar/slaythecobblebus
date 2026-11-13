@@ -66,13 +66,26 @@ class SpireBattleScreen(data:JsonObject):SpirePane(data){
             control(px+pw/2+3,py+ph-28,(pw-30)/2-3,20,"시험 모험 종료"){command("quit")};return
         }
         val ended=data.get("ended")?.asBoolean==true
-        val endW=102;val partyW=(pw-endW-36)/3
+        val endW=96;val pingW=44;val partyW=(pw-endW-pingW-42)/3
         party().forEachIndexed{i,c->val enabled=(!ended||data.get("forced")?.asBoolean==true)&&c.number("hp")>0&&i!=data.number("active")&&(data.get("forced")?.asBoolean==true||data.get("switchUsed")?.asBoolean!=true&&data.number("energy")>0)
             control(px+12+i*(partyW+4),py+ph-28,partyW,20,(if(i==data.number("active"))"● " else "↔ ")+short(SpireWidgets.name(c),partyW-22),enabled){SpireMusic.switchPokemon();command("switch"){addProperty("index",i)}}
                 .also{it.selected=i==data.number("active")}.tooltip=Tooltip.create(Component.literal("${c.number("hp")}/${c.number("maxHp")} HP\n교체: 남은 손패 모두 버림 → 새로 5장\n"+if(data.get("forced")?.asBoolean==true)"기절 교체 무료"else "일반 교체 에너지 1 · 라운드당 1회"))
         }
+        control(px+pw-endW-pingW-16,py+ph-28,pingW,20,"📌 핑",enemies().getOrNull(target)?.number("hp",0)?:0>0){sendPing(hand().getOrNull(hover))}
+            .tooltip=Tooltip.create(Component.literal("선택한 적에게 넣을 수 있는 예상 피해량 핑 전송\n(손패 카드를 우클릭해도 핑 전송)"))
         val endLabel=if(ended)"아군 대기 (${data.number("endedCount")}/${data.number("alivePlayers")})"else "턴 종료  ▸"
         control(px+pw-endW-12,py+ph-28,endW,20,endLabel,!ended&&data.get("forced")?.asBoolean!=true){SpireMusic.turnEnd();command("end")}.primary=!ended
+    }
+    private fun sendPing(card:JsonObject?){
+        val chosen=card?:hand().filter{canPlay(it)&&it.array("previews")!=null}.maxByOrNull{it.array("previews")?.get(target)?.asJsonObject?.number("maxDamage")?:0}?:hand().firstOrNull()
+        val pv=chosen?.array("previews")?.takeIf{target in 0 until it.size()}?.get(target)?.asJsonObject
+        SpireMusic.cardHover()
+        command("ping"){
+            addProperty("target",target)
+            addProperty("move",chosen?.text("move").orEmpty())
+            addProperty("minDamage",pv?.number("minDamage")?:0)
+            addProperty("maxDamage",pv?.number("maxDamage")?:0)
+        }
     }
     private fun canPlay(c:JsonObject)=!busy()&&data.text("phase")=="PLAYER"&&data.get("ended")?.asBoolean!=true&&active.number("hp")>0&&data.number("energy")>=c.number("cost")&&(c.get("trainer")?.asBoolean==true||!SpireWidgets.status(active).contains("수면"))
     private fun play(index:Int){val c=hand().getOrNull(index)?:return;if(canPlay(c)){SpireMusic.cardPlay();command("move"){addProperty("handIndex",index);addProperty("instance",c.get("instance").asLong);addProperty("target",target)}}else if(!busy())SpireMusic.uiError()}
@@ -83,7 +96,9 @@ class SpireBattleScreen(data:JsonObject):SpirePane(data){
         return hand().indices.reversed().firstOrNull{l.hand(it).contains(x,y)}?:-1
     }
     override fun mouseClicked(mx:Double,my:Double,button:Int):Boolean{
-        if(button==0){val index=hovered(mx,my);if(index>=0){play(index);return true}}
+        val index=hovered(mx,my)
+        if(button==0&&index>=0){play(index);return true}
+        if(button==1&&index>=0){sendPing(hand()[index]);return true}
         return super.mouseClicked(mx,my,button)
     }
     override fun keyPressed(key:Int,scan:Int,mods:Int):Boolean{
@@ -107,19 +122,13 @@ class SpireBattleScreen(data:JsonObject):SpirePane(data){
         val ended=data.get("ended")?.asBoolean==true
         val turnText=when{data.text("phase")=="VICTORY"->"승리";data.text("phase")!="PLAYER"->data.text("phase");ended->"아군 대기 (${data.number("endedCount")}/${data.number("alivePlayers")})";else->"내 차례"}
         text(g,"${data.number("round")}턴 · $turnText",px+pw/2-36,py+9,if(ended)0xE7C98F else 0x8DDED2)
+        val l=layout();val ay=py+l.handY.toInt()-31
         val allies=data.array("allies")?.map{it.asJsonObject}.orEmpty()
-        if(allies.isNotEmpty()){
-            val strip=allies.joinToString("  |  "){a->
-                val act=a.getAsJsonObject("active")
-                val st=when{a.get("alive")?.asBoolean!=true->"기절";a.get("ended")?.asBoolean==true->"완료";else->"행동"}
-                "${a.text("name")}: ${SpireWidgets.name(act)} ${act.number("hp")}/${act.number("maxHp")} ($st)"
-            }
-            text(g,short("팀원 · $strip",pw-24),px+12,py+109,0xA8D5E2)
-        }
-        val l=layout()
+        val pings=data.array("pings")?.map{it.asJsonObject}.orEmpty()
         val list=enemies();val ew=enemyWidth()
         list.forEachIndexed{i,e->val x=enemyX(i)
-            SpireSkin.panel(g,x,py+29,ew,76,if(target==i)SpireSkin.teal else SpireSkin.gold)
+            val ep=pings.filter{it.number("target")==i}
+            SpireSkin.panel(g,x,py+29,ew,76,if(ep.isNotEmpty())0xE6B84D else if(target==i)SpireSkin.teal else SpireSkin.gold)
             SpireWidgets.hp(g,e,x+4,py+47,ew-8)
             text(g,short("${e.number("hp")}/${e.number("maxHp")} HP",ew-8),x+4,py+52)
             val attack=e.text("intentType");val role=CardRole.parse(e.text("intentRole"))
@@ -128,22 +137,43 @@ class SpireBattleScreen(data:JsonObject):SpirePane(data){
             text(g,short("$badge · ${SpireWidgets.move(e.text("intent"))}",ew-8),x+4,py+64,ink)
             text(g,short(if(role==CardRole.ATTACK)"내게 ${DamageLabels.damage(e)} 피해 예상"else e.text("intentEffect"),ew-8),x+4,py+76,0xEAD6B5)
             text(g,short(if(role==CardRole.ATTACK)DamageLabels.matchup(DamageLabels.multiplier(e))+" · 명중 ${e.number("intentAccuracy")}%"else "대상: "+if(e.get("selfTarget")?.asBoolean==true)"자신"else "내 포켓몬",ew-8),x+4,py+88,0xBDD3D1)
-
-
-        }
-        val hits=data.array("damageEvents")?.toList()?.takeLast(2).orEmpty()
-        if(hits.isNotEmpty()){
-            val feedW=(pw/2-30).coerceAtMost(290);SpireSkin.panel(g,px+12,py+53,feedW,31)
-            hits.forEachIndexed{i,v->val e=v.asJsonObject
-                val result=if(e.get("miss")?.asBoolean==true){if(DamageLabels.multiplier(e)==0.0)"무효"else "빗나감/차단"}else if(e.number("amount")>0)"-${e.number("amount")} HP"else "효과 적용"
-                val role=CardRole.parse(e.text("role"));val label=if(role==CardRole.ATTACK)DamageLabels.type(e.text("type"))else role.label
-                text(g,short((if(e.get("incoming")?.asBoolean==true)"실제 받음 "else "실제 줌 ")+"${label} $result · ${e.text("target")}",feedW-10),px+17,py+58+i*12,if(role==CardRole.ATTACK)SpireCardArt.tint(e)else role.color)
+            if(ep.isNotEmpty()&&ay>=py+132){
+                val sMin=ep.sumOf{it.number("minDamage")};val sMax=ep.sumOf{it.number("maxDamage")}
+                val lethal=sMax>=e.number("hp")&&e.number("hp")>0
+                SpireSkin.panel(g,x,py+107,ew,24,if(lethal)0x4ADE80 else 0xE6B84D)
+                text(g,short((if(lethal)"📌 처치각! "else "📌 합계 ")+"${sMin}~${sMax}뎀",ew-8),x+4,py+110,if(lethal)0x6EE7B7 else 0xF7D379)
+                val byPlayer=ep.joinToString(" · "){pg->"${if(pg.get("isSelf")?.asBoolean==true)"나"else pg.text("playerName")} ${pg.number("minDamage")}~${pg.number("maxDamage")}"}
+                text(g,short(byPlayer,ew-8),x+4,py+120,0xDCECE8)
             }
         }
-        val ay=py+l.handY.toInt()-31
+        val feedW=(pw/2-30).coerceAtMost(290)
+        val hits=data.array("damageEvents")?.toList()?.takeLast(2).orEmpty()
+        if(hits.isNotEmpty()){
+            SpireSkin.panel(g,px+12,py+51,feedW,34)
+            hits.forEachIndexed{i,v->val e=v.asJsonObject
+                val inc=e.get("incoming")?.asBoolean==true
+                val who=if(inc)"적"else if(e.get("isSelf")?.asBoolean==true)"[나]"else "[${e.text("ownerName").ifBlank{e.text("actor")}}]"
+                val result=if(e.get("miss")?.asBoolean==true){if(DamageLabels.multiplier(e)==0.0)"무효"else "빗나감"}else if(e.number("amount")>0)"-${e.number("amount")}뎀"else "효과"
+                val role=CardRole.parse(e.text("role"))
+                val color=if(inc)0xE58A8A else if(e.get("isSelf")?.asBoolean==true)0xF7D379 else 0x8CE8B5
+                text(g,short("$who ${e.text("actor")} → ${e.text("target")} $result",feedW-10),px+17,py+56+i*13,if(role==CardRole.ATTACK)color else role.color)
+            }
+        }
+        if(allies.isNotEmpty()&&ay>=py+118){
+            val gap=4;val aw=((feedW-(allies.size-1)*gap)/allies.size).coerceAtLeast(78)
+            allies.forEachIndexed{i,a->val ax=px+12+i*(aw+gap);val act=a.getAsJsonObject("active")
+                val alive=a.get("alive")?.asBoolean==true;val aEnded=a.get("ended")?.asBoolean==true
+                val st=when{!alive->"기절";aEnded->"완료";else->"행동"}
+                SpireSkin.panel(g,ax,py+88,aw,28,if(!alive)0x7A4B4B else if(aEnded)0xE6B84D else SpireSkin.teal)
+                text(g,short("${a.text("name")}($st) ${a.number("damageDealt")}뎀",aw-8),ax+4,py+91,if(aEnded)0xF7D379 else 0xDDF2EC)
+                SpireWidgets.hp(g,act,ax+4,py+102,aw-8)
+                text(g,short("${SpireWidgets.name(act)} ${act.number("hp")}/${act.number("maxHp")}",aw-8),ax+4,py+106,0xBDD3D1)
+            }
+        }
         val ownW=if(compact)(pw/2-30).coerceAtLeast(110)else (pw-144).coerceAtMost(310)
         SpireSkin.panel(g,px+12,ay,ownW,25,SpireSkin.teal)
-        text(g,short("${SpireWidgets.name(active)}  ${active.number("hp")}/${active.number("maxHp")} HP",ownW-10),px+17,ay+4)
+        val selfDmg=if(data.number("partySize",1)>1||data.number("selfDamageDealt")>0)" · 누적 ${data.number("selfDamageDealt")}뎀"else ""
+        text(g,short("${SpireWidgets.name(active)}  ${active.number("hp")}/${active.number("maxHp")} HP$selfDmg",ownW-10),px+17,ay+4)
         SpireWidgets.hp(g,active,px+17,ay+16,ownW-10)
         val energyX=if(compact)px+18+ownW else px+pw-112
         SpireSkin.panel(g,energyX,ay,if(compact)70 else 100,25,SpireSkin.teal)
