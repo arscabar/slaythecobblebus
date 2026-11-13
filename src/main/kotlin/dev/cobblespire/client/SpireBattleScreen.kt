@@ -107,8 +107,9 @@ class SpireBattleScreen(data:JsonObject):SpirePane(data){
         if(i>=0){play(i);return true};return super.keyPressed(key,scan,mods)
     }
     override fun background(g:GuiGraphics){
-        SpireSkin.panel(g,px,py,pw,25)
-        val l=layout();g.fillGradient(px,py+l.handY.toInt()-8,px+pw,py+ph,0x30102329,0xF00B1920.toInt())
+        SpireSkin.banner(g,px,py,pw,25)
+        val l=layout();g.fillGradient(px,py+l.handY.toInt()-10,px+pw,py+ph,0x28120F0E,0xF209090B.toInt())
+        g.fill(px,py+l.handY.toInt()-10,px+pw,py+l.handY.toInt()-9,0x55C7A46A)
     }
     private fun drawCard(g:GuiGraphics,c:JsonObject,b:CardBox,lift:Boolean=false,moving:Boolean=false){
         val face=c.deepCopy();DamageLabels.preview(c,target)?.let{face.add("displayPreview",it)}
@@ -176,10 +177,16 @@ class SpireBattleScreen(data:JsonObject):SpirePane(data){
         text(g,short("${SpireWidgets.name(active)}  ${active.number("hp")}/${active.number("maxHp")} HP$selfDmg",ownW-10),px+17,ay+4)
         SpireWidgets.hp(g,active,px+17,ay+16,ownW-10)
         val energyX=if(compact)px+18+ownW else px+pw-112
-        SpireSkin.panel(g,energyX,ay,if(compact)70 else 100,25,SpireSkin.teal)
+        val energyW=if(compact)70 else 100
+        SpireSkin.panel(g,energyX,ay,energyW,25,SpireSkin.gold)
         if(data.get("forced")?.asBoolean==true)text(g,"무료 교체",energyX+8,ay+8,0xECAF93)
-        else{for(i in 0..2)SpireSkin.gem(g,energyX+14+i*(if(compact)19 else 25),ay+9,5,i<data.number("energy"))
-            text(g,"에너지 ${data.number("energy")}/3",energyX+4,ay+16,0xBFE7DC)}
+        else{
+            val eNow=data.number("energy")
+            SpireSkin.orb(g,energyX+16,ay+12,8,eNow>0)
+            g.drawCenteredString(font,"$eNow",energyX+16,ay+8,if(eNow>0)0xFFFDF0D0.toInt()else 0x7A756C)
+            for(i in 0..2)SpireSkin.gem(g,energyX+34+i*(if(compact)12 else 18),ay+8,4,i<eNow)
+            text(g,"에너지 $eNow/3",energyX+29,ay+15,0xE8DEC4)
+        }
         val nextHover=hovered(mx.toDouble(),my.toDouble())
         if(nextHover!=hover&&nextHover>=0)SpireMusic.cardHover()
         hover=nextHover
