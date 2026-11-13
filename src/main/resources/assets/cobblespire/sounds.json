@@ -1,27 +1,27 @@
 {
-  "bgm.lobby_prep":        {"sounds": [{"name": "cobblespire:bgm/lobby_prep", "stream": true}]},
-  "bgm.map_act1":          {"sounds": [{"name": "cobblespire:bgm/map_act1", "stream": true}]},
-  "bgm.map_act2_magma":    {"sounds": [{"name": "cobblespire:bgm/map_act2_magma", "stream": true}]},
-  "bgm.map_act2_aqua":     {"sounds": [{"name": "cobblespire:bgm/map_act2_aqua", "stream": true}]},
-  "bgm.map_act3_galaxy":   {"sounds": [{"name": "cobblespire:bgm/map_act3_galaxy", "stream": true}]},
+  "bgm.lobby_prep":        {"subtitle": "subtitles.cobblespire.bgm.lobby_prep",        "sounds": [{"name": "cobblespire:bgm/lobby_prep", "stream": true}]},
+  "bgm.map_act1":          {"subtitle": "subtitles.cobblespire.bgm.map_act1",          "sounds": [{"name": "cobblespire:bgm/map_act1", "stream": true}]},
+  "bgm.map_act2_magma":    {"subtitle": "subtitles.cobblespire.bgm.map_act2_magma",    "sounds": [{"name": "cobblespire:bgm/map_act2_magma", "stream": true}]},
+  "bgm.map_act2_aqua":     {"subtitle": "subtitles.cobblespire.bgm.map_act2_aqua",     "sounds": [{"name": "cobblespire:bgm/map_act2_aqua", "stream": true}]},
+  "bgm.map_act3_galaxy":   {"subtitle": "subtitles.cobblespire.bgm.map_act3_galaxy",   "sounds": [{"name": "cobblespire:bgm/map_act3_galaxy", "stream": true}]},
 
-  "bgm.battle_act1":         {"sounds": [{"name": "cobblespire:bgm/battle_act1", "stream": true}]},
-  "bgm.battle_act2_magma":   {"sounds": [{"name": "cobblespire:bgm/battle_act2_magma", "stream": true}]},
-  "bgm.battle_act2_aqua":    {"sounds": [{"name": "cobblespire:bgm/battle_act2_aqua", "stream": true}]},
-  "bgm.battle_act3_galaxy":  {"sounds": [{"name": "cobblespire:bgm/battle_act3_galaxy", "stream": true}]},
-  "bgm.battle_elite":        {"sounds": [{"name": "cobblespire:bgm/battle_elite", "stream": true}]},
+  "bgm.battle_act1":         {"subtitle": "subtitles.cobblespire.bgm.battle_act1",         "sounds": [{"name": "cobblespire:bgm/battle_act1", "stream": true}]},
+  "bgm.battle_act2_magma":   {"subtitle": "subtitles.cobblespire.bgm.battle_act2_magma",   "sounds": [{"name": "cobblespire:bgm/battle_act2_magma", "stream": true}]},
+  "bgm.battle_act2_aqua":    {"subtitle": "subtitles.cobblespire.bgm.battle_act2_aqua",    "sounds": [{"name": "cobblespire:bgm/battle_act2_aqua", "stream": true}]},
+  "bgm.battle_act3_galaxy":  {"subtitle": "subtitles.cobblespire.bgm.battle_act3_galaxy",  "sounds": [{"name": "cobblespire:bgm/battle_act3_galaxy", "stream": true}]},
+  "bgm.battle_elite":        {"subtitle": "subtitles.cobblespire.bgm.battle_elite",        "sounds": [{"name": "cobblespire:bgm/battle_elite", "stream": true}]},
 
-  "bgm.boss_act1":           {"sounds": [{"name": "cobblespire:bgm/boss_act1", "stream": true}]},
-  "bgm.boss_act2_magma":     {"sounds": [{"name": "cobblespire:bgm/boss_act2_magma", "stream": true}]},
-  "bgm.boss_act2_aqua":      {"sounds": [{"name": "cobblespire:bgm/boss_act2_aqua", "stream": true}]},
-  "bgm.boss_act3_finale":    {"sounds": [{"name": "cobblespire:bgm/boss_act3_finale", "stream": true}]},
+  "bgm.boss_act1":           {"subtitle": "subtitles.cobblespire.bgm.boss_act1",           "sounds": [{"name": "cobblespire:bgm/boss_act1", "stream": true}]},
+  "bgm.boss_act2_magma":     {"subtitle": "subtitles.cobblespire.bgm.boss_act2_magma",     "sounds": [{"name": "cobblespire:bgm/boss_act2_magma", "stream": true}]},
+  "bgm.boss_act2_aqua":      {"subtitle": "subtitles.cobblespire.bgm.boss_act2_aqua",      "sounds": [{"name": "cobblespire:bgm/boss_act2_aqua", "stream": true}]},
+  "bgm.boss_act3_finale":    {"subtitle": "subtitles.cobblespire.bgm.boss_act3_finale",    "sounds": [{"name": "cobblespire:bgm/boss_act3_finale", "stream": true}]},
 
-  "bgm.event_mystery":     {"sounds": [{"name": "cobblespire:bgm/event_mystery", "stream": true}]},
-  "bgm.facility_shop":     {"sounds": [{"name": "cobblespire:bgm/facility_shop", "stream": true}]},
-  "bgm.facility_rest":     {"sounds": [{"name": "cobblespire:bgm/facility_rest", "stream": true}]},
-  "bgm.run_victory":       {"sounds": [{"name": "cobblespire:bgm/run_victory", "stream": true}]},
+  "bgm.event_mystery":     {"subtitle": "subtitles.cobblespire.bgm.event_mystery",     "sounds": [{"name": "cobblespire:bgm/event_mystery", "stream": true}]},
+  "bgm.facility_shop":     {"subtitle": "subtitles.cobblespire.bgm.facility_shop",     "sounds": [{"name": "cobblespire:bgm/facility_shop", "stream": true}]},
+  "bgm.facility_rest":     {"subtitle": "subtitles.cobblespire.bgm.facility_rest",     "sounds": [{"name": "cobblespire:bgm/facility_rest", "stream": true}]},
+  "bgm.run_victory":       {"subtitle": "subtitles.cobblespire.bgm.run_victory",       "sounds": [{"name": "cobblespire:bgm/run_victory", "stream": true}]},
 
-  "jingle.battle_win":     {"sounds": [{"name": "cobblespire:jingle/battle_win", "stream": true}]},
-  "jingle.act_clear":      {"sounds": [{"name": "cobblespire:jingle/act_clear", "stream": true}]},
-  "jingle.run_defeat":     {"sounds": [{"name": "cobblespire:jingle/run_defeat"}]}
+  "jingle.battle_win":     {"subtitle": "subtitles.cobblespire.jingle.battle_win",     "sounds": [{"name": "cobblespire:jingle/battle_win", "stream": true}]},
+  "jingle.act_clear":      {"subtitle": "subtitles.cobblespire.jingle.act_clear",      "sounds": [{"name": "cobblespire:jingle/act_clear", "stream": true}]},
+  "jingle.run_defeat":     {"subtitle": "subtitles.cobblespire.jingle.run_defeat",     "sounds": [{"name": "cobblespire:jingle/run_defeat"}]}
 }

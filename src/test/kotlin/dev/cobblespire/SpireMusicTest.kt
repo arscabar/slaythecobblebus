@@ -49,4 +49,23 @@ class SpireMusicTest {
             assertNotNull(javaClass.getResource(relPath), "Missing bundled OGG resource '$relPath' for '$id'")
         }
     }
+
+    @Test
+    fun `sound subtitles mod icon and map background textures exist`() {
+        val sounds = javaClass.getResourceAsStream("/assets/cobblespire/sounds.json")!!.bufferedReader(Charsets.UTF_8).use { JsonParser.parseReader(it).asJsonObject }
+        val ko = javaClass.getResourceAsStream("/assets/cobblespire/lang/ko_kr.json")!!.bufferedReader(Charsets.UTF_8).use { JsonParser.parseReader(it).asJsonObject }
+        val en = javaClass.getResourceAsStream("/assets/cobblespire/lang/en_us.json")!!.bufferedReader(Charsets.UTF_8).use { JsonParser.parseReader(it).asJsonObject }
+        for (key in sounds.keySet()) {
+            val subtitle = sounds.getAsJsonObject(key).get("subtitle")?.asString
+            assertNotNull(subtitle, "Missing subtitle for '$key'")
+            assertTrue(ko.has(subtitle), "Missing ko_kr translation for '$subtitle'")
+            assertTrue(en.has(subtitle), "Missing en_us translation for '$subtitle'")
+        }
+        val modMeta = javaClass.getResourceAsStream("/fabric.mod.json")!!.bufferedReader(Charsets.UTF_8).use { JsonParser.parseReader(it).asJsonObject }
+        val iconPath = "/" + modMeta.get("icon").asString
+        assertNotNull(javaClass.getResource(iconPath), "Missing mod icon '$iconPath'")
+        for (bg in listOf("map_bg_act1", "map_bg_act2_magma", "map_bg_act2_aqua", "map_bg_act3_galaxy")) {
+            assertNotNull(javaClass.getResource("/assets/cobblespire/textures/gui/$bg.png"), "Missing GUI map texture '$bg.png'")
+        }
+    }
 }

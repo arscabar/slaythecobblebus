@@ -1,4 +1,25 @@
 {
   "key.cobblespire.open": "CobbleSpire 열기",
-  "key.categories.cobblespire": "CobbleSpire"
+  "key.categories.cobblespire": "CobbleSpire",
+  "subtitles.cobblespire.bgm.lobby_prep": "CobbleSpire 로비 테마 재생",
+  "subtitles.cobblespire.bgm.map_act1": "1막 숲길 지도 테마 재생",
+  "subtitles.cobblespire.bgm.map_act2_magma": "2막 화산 경로 지도 테마 재생",
+  "subtitles.cobblespire.bgm.map_act2_aqua": "2막 심해 경로 지도 테마 재생",
+  "subtitles.cobblespire.bgm.map_act3_galaxy": "3막 천관산 지도 테마 재생",
+  "subtitles.cobblespire.bgm.battle_act1": "1막 야생 포켓몬 전투 BGM",
+  "subtitles.cobblespire.bgm.battle_act2_magma": "2막 마그마단 전투 BGM",
+  "subtitles.cobblespire.bgm.battle_act2_aqua": "2막 아쿠아단 전투 BGM",
+  "subtitles.cobblespire.bgm.battle_act3_galaxy": "3막 갤럭시단 전투 BGM",
+  "subtitles.cobblespire.bgm.battle_elite": "엘리트 강적 전투 BGM",
+  "subtitles.cobblespire.bgm.boss_act1": "1막 보스 전투 BGM",
+  "subtitles.cobblespire.bgm.boss_act2_magma": "2막 마그마단 보스 전투 BGM",
+  "subtitles.cobblespire.bgm.boss_act2_aqua": "2막 아쿠아단 보스 전투 BGM",
+  "subtitles.cobblespire.bgm.boss_act3_finale": "3막 최종 보스 전투 BGM",
+  "subtitles.cobblespire.bgm.event_mystery": "미스터리 이벤트 테마 재생",
+  "subtitles.cobblespire.bgm.facility_shop": "프렌들리숍 테마 재생",
+  "subtitles.cobblespire.bgm.facility_rest": "포켓몬센터 휴식 테마 재생",
+  "subtitles.cobblespire.bgm.run_victory": "전당등록 승리 테마 재생",
+  "subtitles.cobblespire.jingle.battle_win": "전투 승리 팡파르",
+  "subtitles.cobblespire.jingle.act_clear": "막 클리어 팡파르",
+  "subtitles.cobblespire.jingle.run_defeat": "모험 패배 귀환음"
 }

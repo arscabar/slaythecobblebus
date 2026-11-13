@@ -7,6 +7,7 @@ import net.minecraft.core.Holder
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.sounds.Music
 import net.minecraft.sounds.SoundEvent
+import net.minecraft.sounds.SoundEvents
 
 /**
  * Location- and encounter-based BGM & jingle controller.
@@ -91,5 +92,11 @@ object SpireMusic {
     fun pokemonCenterHeal()=ui("cobblemon","block.healing_machine.active")
     /** Cobblemon's own level-up fanfare, used as the built-in victory flourish. */
     fun victoryFanfare()=ui("cobblemon","gui.levelup")
+    fun cardHover()=sfx(SoundEvents.BOOK_PAGE_TURN,1.35f,0.35f)
+    fun cardPlay()=sfx(SoundEvents.EXPERIENCE_ORB_PICKUP,1.15f,0.75f)
+    fun turnEnd()=sfx(SoundEvents.NOTE_BLOCK_CHIME.value(),1.1f,0.8f)
+    fun switchPokemon()=sfx(SoundEvents.ENDERMAN_TELEPORT,1.25f,0.45f)
+    fun uiError()=sfx(SoundEvents.VILLAGER_NO,1.0f,0.6f)
+    private fun sfx(sound:SoundEvent,pitch:Float,volume:Float){Minecraft.getInstance().soundManager.play(SimpleSoundInstance.forUI(sound,pitch,volume))}
     private fun ui(namespace:String,id:String){Minecraft.getInstance().soundManager.play(SimpleSoundInstance.forUI(event(namespace,id),1f))}
 }

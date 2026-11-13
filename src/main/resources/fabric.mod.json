@@ -4,6 +4,14 @@
   "version": "${version}",
   "name": "CobbleSpire",
   "description": "Standalone cooperative three-act Pokemon roguelike for COBBLEVERSE.",
+  "authors": [
+    "CobbleSpire Contributors"
+  ],
+  "contact": {
+    "homepage": "https://github.com/arscabar/slaythecobblebus",
+    "sources": "https://github.com/arscabar/slaythecobblebus"
+  },
+  "icon": "assets/cobblespire/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [

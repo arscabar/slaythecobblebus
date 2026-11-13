@@ -1,4 +1,25 @@
 {
   "key.cobblespire.open": "Open CobbleSpire",
-  "key.categories.cobblespire": "CobbleSpire"
+  "key.categories.cobblespire": "CobbleSpire",
+  "subtitles.cobblespire.bgm.lobby_prep": "CobbleSpire lobby theme plays",
+  "subtitles.cobblespire.bgm.map_act1": "Act 1 forest map theme plays",
+  "subtitles.cobblespire.bgm.map_act2_magma": "Act 2 volcanic map theme plays",
+  "subtitles.cobblespire.bgm.map_act2_aqua": "Act 2 ocean map theme plays",
+  "subtitles.cobblespire.bgm.map_act3_galaxy": "Act 3 Mt. Coronet map theme plays",
+  "subtitles.cobblespire.bgm.battle_act1": "Act 1 wild battle BGM",
+  "subtitles.cobblespire.bgm.battle_act2_magma": "Act 2 Team Magma battle BGM",
+  "subtitles.cobblespire.bgm.battle_act2_aqua": "Act 2 Team Aqua battle BGM",
+  "subtitles.cobblespire.bgm.battle_act3_galaxy": "Act 3 Team Galactic battle BGM",
+  "subtitles.cobblespire.bgm.battle_elite": "Elite encounter battle BGM",
+  "subtitles.cobblespire.bgm.boss_act1": "Act 1 boss battle BGM",
+  "subtitles.cobblespire.bgm.boss_act2_magma": "Act 2 Magma boss battle BGM",
+  "subtitles.cobblespire.bgm.boss_act2_aqua": "Act 2 Aqua boss battle BGM",
+  "subtitles.cobblespire.bgm.boss_act3_finale": "Act 3 finale boss battle BGM",
+  "subtitles.cobblespire.bgm.event_mystery": "Mystery event theme plays",
+  "subtitles.cobblespire.bgm.facility_shop": "Friendly Shop theme plays",
+  "subtitles.cobblespire.bgm.facility_rest": "Pokemon Center rest theme plays",
+  "subtitles.cobblespire.bgm.run_victory": "Hall of Fame victory theme plays",
+  "subtitles.cobblespire.jingle.battle_win": "Battle victory fanfare",
+  "subtitles.cobblespire.jingle.act_clear": "Act clear fanfare",
+  "subtitles.cobblespire.jingle.run_defeat": "Run defeat theme"
 }
