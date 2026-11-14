@@ -9,6 +9,7 @@
 .vscode/
 *.iml
 *.log
+*.hprof
 logs/
 dist/
 .test-tmp/
@@ -43,3 +44,7 @@ Thumbs.db
 
 # Isolated Loom UI development instance
 **/run-ui/
+
+# Local agent runtime metadata (not project source)
+/.multica/
+/AGENTS.md

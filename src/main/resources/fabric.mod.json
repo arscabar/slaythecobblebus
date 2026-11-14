@@ -8,8 +8,8 @@
     "CobbleSpire Contributors"
   ],
   "contact": {
-    "homepage": "https://github.com/arscabar/slaythecobblebus",
-    "sources": "https://github.com/arscabar/slaythecobblebus"
+    "homepage": "https://github.com/arscabar/slaythecoblebus",
+    "sources": "https://github.com/arscabar/slaythecoblebus"
   },
   "icon": "assets/cobblespire/icon.png",
   "environment": "*",
@@ -29,5 +29,11 @@
     "fabric-api": "*",
     "fabric-language-kotlin": "*",
     "cobblemon": ">=1.7.3 <1.8"
-  }
+  },
+  "mixins": [
+    {
+      "config": "cobblespire.client.mixins.json",
+      "environment": "client"
+    }
+  ]
 }

@@ -32,6 +32,7 @@ object SpireCardArt {
         if(hover){g.fill(x-2,y-2,x+w+2,y+h+2,SpireSkin.teal)}
         g.blit(frame,x,y,0f,0f,w,h,w,h)
         g.fill(x,y,x+w,y+h,(role.color and 0x00FFFFFF) or 0xA0000000.toInt())
+        if(w<64||h<100){compact(g,c,x,y,w,h,affordable,key);return}
         // Render live content in a fixed design space, so all sizes share the same frame alignment.
         g.pose().pushPose();g.pose().translate(x.toDouble(),y.toDouble(),0.0);g.pose().scale(w/100f,h/150f,1f)
         fun fitted(s:String,xx:Int,yy:Int,max:Int,col:Int){
@@ -66,4 +67,26 @@ object SpireCardArt {
         g.pose().popPose()
         if(!affordable)g.fill(x,y,x+w,y+h,0x65081824)
     }
+    /** Native-sized glyphs for the ordinary HUD; no tiny paragraphs or fractional bitmap scaling. */
+    private fun compact(g:GuiGraphics,c:JsonObject,x:Int,y:Int,w:Int,h:Int,enabled:Boolean,key:String){
+        val font=Minecraft.getInstance().font;val role=CardSemantics.role(c)
+        fun line(s:String,xx:Int,yy:Int,ww:Int,col:Int){val t=if(font.width(s)<=ww)s else font.plainSubstrByWidth(s,(ww-6).coerceAtLeast(0))+"…";g.drawString(font,t,xx,yy,col,false)}
+        g.fill(x+2,y+2,x+w-2,y+h-2,role.dark)
+        g.fill(x+3,y+3,x+14,y+14,role.color);line(c.number("cost").toString(),x+5,y+4,8,0x16242A)
+        line(SpireWidgets.move(c.text("move")),x+17,y+4,w-21,0xF1E7D4)
+        g.fill(x+3,y+16,x+w-3,y+26,role.color);line(role.label,x+6,y+17,w-12,0x12232B)
+        val preview=c.obj("displayPreview")
+        if(role==CardRole.ATTACK){
+            g.fill(x+4,y+29,x+w-4,y+40,tint(c));line(DamageLabels.type(c.text("type")),x+7,y+30,w-14,0x142026)
+            val result=if(preview!=null)DamageLabels.damage(preview)else "위력 ${c.number("power")}"
+            line(result,x+5,y+h-12,w-if(key.isBlank())10 else 22,0xF3E5CF)
+        }else{
+            val effect=c.text("effectSummary").replace("랭크","").replace("카드 ","뽑기 ").replace(" 뽑기","")
+            line(effect,x+5,y+31,w-10,0xF1E5D5)
+            if(h>64)line(CardSemantics.target(c),x+5,y+h-12,w-10,0xC9D6D3)
+        }
+        if(key.isNotBlank())line(key,x+w-10,y+h-12,8,role.color)
+        if(!enabled)g.fill(x,y,x+w,y+h,0x55081824)
+    }
+
 }

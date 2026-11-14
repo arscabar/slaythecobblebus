@@ -38,8 +38,8 @@ class BattleResultScreen(data:JsonObject):SpirePane(data){
     override fun background(g:GuiGraphics){g.fill(0,0,width,height,0xB0061119.toInt());super.background(g)}
     override fun content(g:GuiGraphics,mx:Int,my:Int,delta:Float){
         g.pose().pushPose();g.pose().translate((px+pw/2).toDouble(),(py+11).toDouble(),0.0);g.pose().scale(1.7f,1.7f,1f)
-        g.drawCenteredString(font,if(won)"전투 승리!"else "전투 패배",0,0,if(won)0xE8CD86 else 0xE79D96);g.pose().popPose()
-        g.drawCenteredString(font,if(won)"진행 +2 반영 · 누적 ${data.number("points")}점 · 부활 ${loot()?.number("revivedCount")?:0}마리"else "모험 파티가 모두 기절했습니다.",px+pw/2,py+34,0xD7E6D8)
+        g.drawCenteredString(font,if(won)"전투 승리!"else if(data.get("surrendered")?.asBoolean==true)"전원 항복"else "전투 패배",0,0,if(won)0xE8CD86 else 0xE79D96);g.pose().popPose()
+        g.drawCenteredString(font,if(won)"진행 +2 반영 · 누적 ${data.number("points")}점 · 부활 ${loot()?.number("revivedCount")?:0}마리"else if(data.get("surrendered")?.asBoolean==true)"모든 참가자의 동의로 전투를 종료했습니다."else "모험 파티가 모두 기절했습니다.",px+pw/2,py+34,0xD7E6D8)
         if(!won){text(g,"보상은 지급되지 않습니다.",px+16,py+64,0xACBCBE);return}
         val allSettled=loot()?.get("allSettled")?.asBoolean!=false
         val state=when{!settled->"전리품 · 기술카드 1장 선택 (모험 전용)";!allSettled->"전리품 선택 완료 · 다른 팀원 선택 대기 중";loot()?.number("selected")==-1->"카드를 건너뛰었습니다.";else->"선택한 카드가 모험용 덱에 추가됐습니다."}

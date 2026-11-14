@@ -78,6 +78,10 @@ class SpireSmoke:ModInitializer {
         val self=battle.players.single().active
         check("hand-role-controls-attack-only-fields",state.getAsJsonArray("hand").all{v->val c=v.asJsonObject;if(c.text("role")=="ATTACK")c.has("power")&&c.getAsJsonArray("previews").size()==1 else !c.has("power")&&!c.has("accuracy")&&!c.has("previews")&&c.text("effectSummary").isNotBlank()})
         check("enemy-nonattacks-expose-effects-instead-of-damage",state.getAsJsonArray("enemies").all{v->val c=v.asJsonObject;if(c.text("intentRole")=="ATTACK")c.text("intentType").isNotBlank()&&c.has("intentAccuracy") else c.text("intentEffect").isNotBlank()&&!c.has("intentPower")&&!c.has("minDamage")})
+        battle.intents=listOf(EnemyIntent(0,MoveCompatibility.move("tailwhip")))
+        action(service,p,"end")
+        state=requireNotNull(service.snapshot(p.uuid))
+        check("feedback-describes-actual-defence-drop",requireNotNull(service.snapshot(p.uuid)).getAsJsonArray("feedback").any{it.asJsonObject.text("text")=="내 방어 1단계 하락"})
         self.deck!!.hand[0]=MoveInstance(998,TrainerCards.encourage)
         val support=requireNotNull(service.snapshot(p.uuid)).getAsJsonArray("hand")[0].asJsonObject
         check("encourage-wire-has-no-attack-metadata",support.text("role")=="SUPPORT"&&support.text("effectSummary")=="카드 2장 뽑기"&&!support.has("type")&&!support.has("power")&&!support.has("accuracy")&&!support.has("previews"))
@@ -111,6 +115,11 @@ class SpireSmoke:ModInitializer {
         val identity=sessions.getValue(p.uuid);repeat(3){action(service,p,"open")}
         check("closing-and-reopening-does-not-replace-session",sessions.getValue(p.uuid)===identity)
         check("real-party-PC-and-inventory-preserved",originalParty==Cobblemon.storage.getParty(p).toList().map(::signature)&&originalPC==Cobblemon.storage.getPC(p).toList().map(::signature)&&originalInventory==p.inventory.items.map{it.toString()+it.componentsPatch.toString()})
+        check("active-battle-quit-cannot-bypass-surrender",runCatching{action(service,p,"quit")}.isFailure)
+        action(service,p,"surrender"){addProperty("vote",true)}
+        val lost=requireNotNull(service.snapshot(p.uuid))
+        check("solo-surrender-is-unanimous-one-of-one",lost.text("phase")=="DEFEAT"&&lost.get("surrendered").asBoolean&&lost.number("surrenderVotes")==1&&lost.number("participantCount")==1)
+        check("surrender-does-not-create-loot-or-progress",!lost.has("loot")&&lost.number("points")==state.number("points"))
         action(service,p,"quit");check("explicit-quit-discards-memory-only-session",service.snapshot(p.uuid)==null)
         check("quit-restores-original-dimension-and-position",p.level().dimension()==originalDimension&&p.position().distanceTo(originalPosition)<.001)
         check("quit-removes-world-presentation-entities",arenaMon.all{it.isRemoved})

@@ -85,7 +85,7 @@ class WorldArena(private val server:MinecraftServer){
         }
         val extra=(allies.size-1).coerceAtLeast(0)
         return JsonObject().apply{
-            addProperty("dimension",KEY.location().toString());addProperty("cameraX",s.cx-12.0-extra*1.5);addProperty("cameraY",79.0+extra*1.2);addProperty("cameraZ",19.0+extra*1.8)
+            addProperty("focusX",s.cx);addProperty("focusY",64.0);addProperty("focusZ",0.0);addProperty("dimension",KEY.location().toString());addProperty("cameraX",s.cx-12.0-extra*1.5);addProperty("cameraY",79.0+extra*1.2);addProperty("cameraZ",19.0+extra*1.8)
             addProperty("yaw",-147.72);addProperty("pitch",44.0)
             add("entities",JsonObject().also{o->s.entities.forEach{(k,v)->o.addProperty(k,v.id)}})
         }

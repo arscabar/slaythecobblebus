@@ -4,6 +4,8 @@ COBBLEVERSE 1.7.42 / Minecraft 1.21.1 / Fabric / Cobblemon 1.7.3용 독립 협�
 
 기본 진입 키는 **F10**이며 게임 키 설정에서 변경합니다. 설치된 기본 모드팩에서 F4·F6·F7·F8·F9·U는 다른 기능에 쓰이고 있어 피했습니다.
 
+현재 후보는 **0.6.0-dev / 프로토콜 7**입니다. 기존 1~4인 협동 시험 전투·피해 핑·음악·HUD 작업에 보관돼 있던 일반 HUD, 전장 중심 카메라, 전원 항복 투표, 실제 효과 피드백을 통합했습니다. 아래 0.5.x 설명은 이전 단계 기록입니다. 3막 지도·상점·유물을 포함한 완성 릴리즈는 아니며, 실제 게임의 새 후보 검증은 별도 단계입니다. 변경 범위와 재현 명령은 `docs/releases/0.6.0-dev-candidate.md`, 누락 조사 근거는 `docs/releases/COBB-6-audit.md`를 참고하세요.
+
 ## 개발 단계
 
 - [x] 빈 원격 저장소 복제와 독립 Gradle/Fabric 프로젝트 초기화
@@ -20,6 +22,8 @@ COBBLEVERSE 1.7.42 / Minecraft 1.21.1 / Fabric / Cobblemon 1.7.3용 독립 협�
 `design/GDD-v4.1.md`와 `design/data`가 제공된 기획의 보존 사본입니다. `design/Settings.json`, `LevelProgression.json`, `MoveUpgrades.json`은 원본 엑셀의 셀 주소를 보존한 읽기 전용 발췌입니다. 현재 수정 규칙은 GDD v4.2와 `current_rules.json`이 우선하며 v4.1은 원본 참고 자료입니다.
 
 빌드: JDK 21에서 `./gradlew test build`.
+
+Windows: JDK 21의 `JAVA_HOME`을 설정하고 `powershell -NoProfile -ExecutionPolicy Bypass -File .\build_slay.ps1`을 실행합니다. `-JavaHome <JDK21 경로>`와 `-GradleUserHome <캐시 경로>`를 선택적으로 전달할 수 있습니다. 스크립트는 저장소 폴더를 기준으로 공식 `test build`를 실행하며 호출자의 작업 폴더와 환경변수를 복원합니다.
 
 ## 현재 검증된 범위
 

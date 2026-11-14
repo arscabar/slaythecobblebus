@@ -30,7 +30,7 @@ class NativeEffectsTest {
   assertEquals(14,normal.estimate(other.body,e.body,MoveCompatibility.move("tackle")).second)
  }
  @Test fun `clear body blocks hostile stat drops and still allows own boosts`(){val p=a("player:0");val e=a("enemy:0","clearbody");val fx=NativeEffects(listOf(p,e).associateBy{it.body.uid},2);val battle=b(p,e)
-  fx.hit(p.body,e.body,MoveCompatibility.move("tailwhip"),0,battle);assertNull(e.body.stages["def"])
+  fx.hit(p.body,e.body,MoveCompatibility.move("tailwhip"),0,battle);assertNull(e.body.stages["def"]);assertTrue(battle.events.none{it.name=="STAGE_CHANGED"})
   fx.hit(e.body,e.body,MoveCompatibility.move("swordsdance"),0,battle);assertEquals(2,e.body.stages["atk"])
  }
  @Test fun `status immunities and own tempo are preserved`(){val p=a("player:0");val e=a("enemy:0","owntempo",setOf("electric"));val fx=NativeEffects(listOf(p,e).associateBy{it.body.uid},2);val battle=b(p,e)

@@ -42,7 +42,7 @@ class TrialService(private val server:MinecraftServer,val catalogue:PokemonCatal
     fun handle(p:ServerPlayer,j:JsonObject){
         require(j.text("action").length<=32)
         val action=j.text("action")
-        if(action in setOf("move","switch","end","next","start","host","join","launch","claim","ping")){
+        if(action in setOf("move","switch","end","next","start","host","join","launch","claim","ping","surrender")){
             require(server.tickCount-(lastAction[p.uuid]?:-999)>=2){"이전 요청 처리 후 다시 시도하세요."};lastAction[p.uuid]=server.tickCount
         }
         when(action){
@@ -60,13 +60,14 @@ class TrialService(private val server:MinecraftServer,val catalogue:PokemonCatal
                 s.pings[p.uuid]=Ping(p.uuid,p.scoreboardName,target,j.text("move").take(48),minD,maxD,b.round)
                 broadcastBattle(s,false,false)
             }
-            "quit"->{val s=sessions[p.uuid];if(s!=null&&s.started)requireSession(p,j);removeMember(p);menu(p,JsonObject())}
-            "move","switch","end","next","claim"->{
+            "quit"->{val s=sessions[p.uuid];if(s!=null&&s.started){requireSession(p,j);require(s.battle.phase in setOf(SpireBattlePhase.VICTORY,SpireBattlePhase.DEFEAT)){"전투 중에는 항복 투표를 이용하세요."}};removeMember(p);menu(p,JsonObject())}
+            "move","switch","end","next","claim","surrender"->{
                 val s=requireSession(p,j);val b=s.battle;val member=s.members.first{it.player==p.uuid}
                 when(action){
                     "move"->b.useMove(p.uuid,j.number("handIndex",-1),j.get("instance")?.asLong?:-1,j.number("target",-1),j.text("request"),j.number("revision",-1))
                     "switch"->{b.switch(p.uuid,j.number("index",-1),j.text("request"),j.number("revision",-1));member.activeIndex=b.players.first{it.id==p.uuid}.activeIndex}
                     "end"->b.endTurn(p.uuid,j.text("request"),j.number("revision",-1))
+                    "surrender"->b.voteSurrender(p.uuid,j.get("vote")?.asBoolean?:true,j.number("revision",-1))
                     "claim"->{
                         require(b.phase==SpireBattlePhase.VICTORY&&j.number("revision",-1)==b.revision){"승리 정산 화면을 다시 열어주세요."}
                         val loot=requireNotNull(member.loot);val index=j.number("choice",-2);loot.validate(index)
@@ -243,6 +244,7 @@ class TrialService(private val server:MinecraftServer,val catalogue:PokemonCatal
     private fun buildSnapshot(s:Session,member:Member,open:Boolean):JsonObject{
         val b=s.battle;val player=b.players.first{it.id==member.player};return JsonObject().apply{
             addProperty("kind","battle");addProperty("open",open);addProperty("session",s.id.toString());addProperty("revision",b.revision);addProperty("round",b.round);addProperty("phase",b.phase.name)
+            addProperty("surrenderVotes",b.surrenderCount);addProperty("participantCount",b.participantCount);addProperty("surrenderVoted",b.hasSurrenderVote(member.player));addProperty("surrendered",b.surrendered)
             addProperty("progress",s.points);addProperty("points",s.points);addProperty("energy",player.energy);addProperty("active",player.activeIndex);addProperty("forced",player.forcedSwitch);addProperty("switchUsed",player.normalSwitchUsed);addProperty("battleNumber",s.battleNumber);addProperty("encounter",s.encounter)
             addProperty("act",s.act);addProperty("tier",s.tier);addProperty("partySize",s.members.size);addProperty("isHost",s.host==member.player)
             addProperty("ended",player.ended);addProperty("endedCount",b.players.count{it.alive&&it.ended});addProperty("alivePlayers",b.players.count{it.alive})
@@ -280,6 +282,9 @@ class TrialService(private val server:MinecraftServer,val catalogue:PokemonCatal
                     addProperty("move",e.moveId);addProperty("type",e.moveType);addProperty("multiplier",e.multiplier);addProperty("miss",e.name=="MOVE_MISS")
                 })
             }})
+            add("feedback",JsonArray().also{a->b.events.withIndex().mapNotNull{(index,e)->
+                BattleFeedback.text(e,member.party.map{it.body.uid}.toSet(),s.actors.mapValues{it.value.name})?.let{message->JsonObject().apply{addProperty("seq",index+1);addProperty("text",message)}}
+            }.takeLast(6).forEach{a.add(it)}})
             member.loot?.let{loot->add("loot",JsonObject().apply{
                 addProperty("settled",loot.settled);addProperty("allSettled",s.members.all{it.loot?.settled==true});addProperty("selected",loot.selected?:-2);addProperty("progressAward",2);addProperty("revivedCount",member.party.count{it.body.uid !in b.winningSurvivors})
                 add("offers",JsonArray().also{a->loot.offers.forEach{offer->a.add(cardInfo(offer.card,s.effects).apply{addProperty("owner",offer.owner);addProperty("ownerName",member.party[offer.owner].name)})}})

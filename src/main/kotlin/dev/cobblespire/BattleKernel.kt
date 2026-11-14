@@ -35,7 +35,7 @@ class SpireBattlePlayer(val id:UUID,val party:List<SpireCombatant>){
 }
 enum class SpireBattlePhase{PLAYER,ENEMY,VICTORY,DEFEAT}
 data class EnemyIntent(val actor:Int,val move:SpireMove)
-data class SpireBattleEvent(val name:String,val round:Int,val actor:String="",val target:String="",val amount:Int=0,val moveId:String="",val moveType:String="",val multiplier:Double=1.0)
+data class SpireBattleEvent(val name:String,val round:Int,val actor:String="",val target:String="",val amount:Int=0,val moveId:String="",val moveType:String="",val multiplier:Double=1.0,val detail:String="")
 fun interface SpireBattleHook{fun dispatch(event:SpireBattleEvent,battle:SpireBattle)}
 
 interface SpireEffects {
@@ -67,14 +67,33 @@ class SpireBattle(val players:List<SpireBattlePlayer>,val enemies:List<SpireComb
     var victoryCount=0;private set
     var intents:List<EnemyIntent> = emptyList()
     val winningSurvivors=mutableSetOf<String>()
+    private val surrenderVotes=mutableSetOf<UUID>()
+    val surrenderCount get()=activePlayers().count{it.id in surrenderVotes}
+    val participantCount get()=activePlayers().size
+    var surrendered=false;private set
+    fun hasSurrenderVote(id:UUID)=id in surrenderVotes
+    private fun finishSurrender():Boolean{
+        if(activePlayers().isEmpty()||!activePlayers().all{it.id in surrenderVotes})return false
+        surrendered=true;phase=SpireBattlePhase.DEFEAT;event("BATTLE_SURRENDERED")
+        players.flatMap{it.party}.forEach{it.endBattle()};return true
+    }
+    fun voteSurrender(id:UUID,vote:Boolean,token:Int){
+        participant(id);require(token==revision){"화면을 갱신해 주세요."}
+        require(phase in setOf(SpireBattlePhase.PLAYER,SpireBattlePhase.ENEMY)){"이미 끝난 전투입니다."}
+        if(vote)surrenderVotes.add(id)else surrenderVotes.remove(id)
+        revision++;event("SURRENDER_VOTE",id.toString(),amount=surrenderCount);finishSurrender()
+    }
+    fun recordEffect(name:String,source:String,target:String,amount:Int=0,detail:String=""){event(name,source,target,amount,detail=detail)}
     private fun activePlayers()=players.filter{it.id !in departed}
-    private fun event(name:String,actor:String="",target:String="",amount:Int=0,move:SpireMove?=null,multiplier:Double=1.0){val e=SpireBattleEvent(name,round,actor,target,amount,move?.id.orEmpty(),move?.type.orEmpty(),multiplier);events.add(e);hook.dispatch(e,this)}
+    private fun event(name:String,actor:String="",target:String="",amount:Int=0,move:SpireMove?=null,multiplier:Double=1.0,detail:String=""){val e=SpireBattleEvent(name,round,actor,target,amount,move?.id.orEmpty(),move?.type.orEmpty(),multiplier,detail);events.add(e);hook.dispatch(e,this)}
     private fun participant(id:UUID)=requireNotNull(players.firstOrNull{it.id==id&&it.id !in departed}){"모험 참가자가 아닙니다."}
     fun removePlayer(id:UUID){
         val p=players.firstOrNull{it.id==id}?:return
         if(!departed.add(id))return
         p.party.forEach{it.hp=0};p.ended=true;revision++
-        if(decideResult())return
+        surrenderVotes.remove(id)
+        if(phase in setOf(SpireBattlePhase.VICTORY,SpireBattlePhase.DEFEAT))return
+        if(finishSurrender()||decideResult())return
         if(phase==SpireBattlePhase.PLAYER&&activePlayers().filter{it.alive}.all{it.ended})enemyPhase()
     }
     private fun validateRequest(id:UUID,request:String,token:Int){
@@ -115,7 +134,7 @@ class SpireBattle(val players:List<SpireBattlePlayer>,val enemies:List<SpireComb
             }else event("MOVE_MISS",self.uid,t.uid,move=move)
         }
         if(inflicted>0&&move.recoilFraction>0)self.hp=(self.hp-floor(inflicted*move.recoilFraction).toInt().coerceAtLeast(1)).coerceAtLeast(0)
-        if(!failed&&move.healFraction>0)self.heal(effects.healing(self,move))
+        if(!failed&&move.healFraction>0){val before=self.hp;self.heal(effects.healing(self,move));recordEffect("HEALED",self.uid,self.uid,self.hp-before)}
         effects.resolved(self,move,inflicted,this)
         event("MOVE_RESOLVED",self.uid,foe.uid)
         if(!failed&&effects.drawCount(card)>0){val n=deck.drawCards(effects.drawCount(card),round,"EFFECT").size;event("CARDS_DRAWN",self.uid,amount=n)}
@@ -151,7 +170,7 @@ class SpireBattle(val players:List<SpireBattlePlayer>,val enemies:List<SpireComb
                     }else event("MOVE_MISS",actor.uid,target.uid,move=move)
                 }
                 effects.resolved(actor,move,inflicted,this)
-                if(move.healFraction>0)actor.heal(effects.healing(actor,move))
+                if(move.healFraction>0){val before=actor.hp;actor.heal(effects.healing(actor,move));recordEffect("HEALED",actor.uid,actor.uid,actor.hp-before)}
                 if(move.recoilFraction>0&&inflicted>0)actor.hp=(actor.hp-floor(inflicted*move.recoilFraction).toInt().coerceAtLeast(1)).coerceAtLeast(0)
             }
             event("ENEMY_ACTION_RESOLVED",actor.uid)

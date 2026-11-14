@@ -13,21 +13,21 @@ import org.lwjgl.glfw.GLFW
 
 class SpireClient:ClientModInitializer {
     override fun onInitializeClient(){
-        net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.DISCONNECT.register{_,_->SeenDeckMotions.clear();WorldBattleView.clear();SpireMusic.clear()}
+        net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.DISCONNECT.register{_,_->SeenDeckMotions.clear();WorldBattleView.clear();SpireMusic.clear();BattleHudState.clear()}
         val key=KeyBindingHelper.registerKeyBinding(KeyMapping("key.cobblespire.open",InputConstants.Type.KEYSYM,GLFW.GLFW_KEY_F10,"key.categories.cobblespire"))
         ClientTickEvents.END_CLIENT_TICK.register{mc->WorldBattleView.tick(mc);SpireMusic.tick(mc);while(key.consumeClick())if(mc.player!=null&&mc.screen==null){
-            if(ClientPlayNetworking.canSend(SpirePayload.TYPE))send("open")else mc.player?.displayClientMessage(Component.literal("서버에 CobbleSpire가 설치되어 있지 않습니다."),false)
+            if(BattleHudState.isActive())mc.setScreen(SpireBattleScreen(requireNotNull(BattleHudState.latest)))else if(ClientPlayNetworking.canSend(SpirePayload.TYPE))send("open")else mc.player?.displayClientMessage(Component.literal("서버에 CobbleSpire가 설치되어 있지 않습니다."),false)
         }}
         ClientPlayNetworking.registerGlobalReceiver(SpirePayload.TYPE){payload,ctx->ctx.client().execute{
             val d=JsonParser.parseString(payload.json).asJsonObject
             if(ctx.client().player==null)return@execute
-            if(d.number("protocol")!=6){ctx.client().player?.displayClientMessage(Component.literal("서버와 클라이언트의 CobbleSpire 버전을 맞춰주세요."),false);return@execute}
+            if(d.number("protocol")!=7){ctx.client().player?.displayClientMessage(Component.literal("서버와 클라이언트의 CobbleSpire 버전을 맞춰주세요."),false);return@execute}
             when(d.text("kind")){
-                "error"->{(ctx.client().screen as? SpirePane)?.showError(d.text("message"))?:ctx.client().player?.displayClientMessage(Component.literal(d.text("message")),false)}
+                "error"->{BattleHudState.error(d.text("message"));(ctx.client().screen as? SpirePane)?.showError(d.text("message"))?:ctx.client().player?.displayClientMessage(Component.literal(d.text("message")),false)}
                 "catalog"->ctx.client().setScreen(RegistryScreen(d))
-                "menu"->{WorldBattleView.clear();SpireMusic.exitFacility();ctx.client().setScreen(SpireMenuScreen(d))}
+                "menu"->{BattleHudState.clear();WorldBattleView.clear();SpireMusic.exitFacility();ctx.client().setScreen(SpireMenuScreen(d))}
                 "battle"->{
-                    WorldBattleView.update(d);SpireMusic.onBattle(d.text("encounter"));val current=ctx.client().screen
+                    BattleHudState.update(d);WorldBattleView.update(d);SpireMusic.onBattle(d.text("encounter"));val current=ctx.client().screen
                     if(d.text("phase") in setOf("VICTORY","DEFEAT")){
                         if(current is BattleResultScreen)current.accept(d)else ctx.client().setScreen(BattleResultScreen(d))
                     }else if(current is SpireBattleScreen)current.accept(d)
@@ -37,5 +37,5 @@ class SpireClient:ClientModInitializer {
             }
         }}
     }
-    companion object {fun send(action:String,body:JsonObject.()->Unit={}){ClientPlayNetworking.send(SpirePayload(JsonObject().apply{addProperty("action",action);addProperty("protocol",6);body()}.toString()))}}
+    companion object {fun send(action:String,body:JsonObject.()->Unit={}){ClientPlayNetworking.send(SpirePayload(JsonObject().apply{addProperty("action",action);addProperty("protocol",7);body()}.toString()))}}
 }

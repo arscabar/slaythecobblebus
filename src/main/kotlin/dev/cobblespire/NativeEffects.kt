@@ -100,7 +100,7 @@ class NativeEffects(val actors:Map<String,PokemonBridge.Actor>,seed:Long):SpireE
         }
         return source.alive
     }
-    private fun status(target:SpireCombatant,id:String,battle:SpireBattle){
+    private fun status(source:SpireCombatant,target:SpireCombatant,id:String,battle:SpireBattle){
         if(!target.alive)return
         val ability=ability(target)
         val mapped=mapOf("brn" to "burn","psn" to "poison","tox" to "toxic","par" to "paralysis","slp" to "sleep")[id]
@@ -110,20 +110,21 @@ class NativeEffects(val actors:Map<String,PokemonBridge.Actor>,seed:Long):SpireE
             if(mapped in setOf("poison","toxic")&&(target.types.any{it in setOf("poison","steel")}||ability=="immunity"))return
             if(mapped=="paralysis"&&("electric" in target.types||ability=="limber"))return
             if(mapped=="sleep"&&ability in setOf("insomnia","vitalspirit"))return
+            battle.recordEffect("STATUS_APPLIED",source.uid,target.uid,detail=mapped)
             target.afflict(mapped,battle.round,if(mapped=="sleep")random.nextInt(1,4)else if(mapped=="paralysis")2 else 0)
         }else if(id in setOf("confusion","flinch")){
             if(id=="confusion"&&ability=="owntempo"||id=="flinch"&&ability=="innerfocus")return
-            if(id !in target.statuses)target.afflict(id,battle.round,if(id=="confusion")random.nextInt(2,6)else 1)
+            if(id !in target.statuses){target.afflict(id,battle.round,if(id=="confusion")random.nextInt(2,6)else 1);battle.recordEffect("STATUS_APPLIED",source.uid,target.uid,detail=id)}
         }
     }
     private fun apply(source:SpireCombatant,target:SpireCombatant,o:JsonObject,battle:SpireBattle,includeSelf:Boolean=true){
         if(!target.alive){if(includeSelf)o.obj("self")?.let{apply(source,source,it,battle)};return}
         o.obj("boosts")?.entrySet()?.forEach{(key,value)->
             val n=value.asInt;val a=ability(target)
-            if(n>=0||source===target||a!="clearbody"&&!(a=="hypercutter"&&key=="atk")&&!(a=="keeneye"&&key=="accuracy"))target.stages[key]=((target.stages[key]?:0)+n).coerceIn(-6,6)
+            if(n>=0||source===target||a!="clearbody"&&!(a=="hypercutter"&&key=="atk")&&!(a=="keeneye"&&key=="accuracy")){val before=target.stages[key]?:0;val after=(before+n).coerceIn(-6,6);target.stages[key]=after;if(after!=before)battle.recordEffect("STAGE_CHANGED",source.uid,target.uid,after-before,key)}
         }
-        if(o.text("status").isNotBlank())status(target,o.text("status"),battle)
-        if(o.text("volatileStatus").isNotBlank())status(target,o.text("volatileStatus"),battle)
+        if(o.text("status").isNotBlank())status(source,target,o.text("status"),battle)
+        if(o.text("volatileStatus").isNotBlank())status(source,target,o.text("volatileStatus"),battle)
         if(includeSelf)o.obj("self")?.let{apply(source,source,it,battle)}
     }
     override fun hit(source:SpireCombatant,target:SpireCombatant,move:SpireMove,damage:Int,battle:SpireBattle){
@@ -132,7 +133,7 @@ class NativeEffects(val actors:Map<String,PokemonBridge.Actor>,seed:Long):SpireE
         if(m.obj("self")!=null&&!(ability(source)=="sheerforce"&&m.array("secondaries")?.size()?.let{it>0}==true))pendingSelf.add(source.uid)
         if(ability(source)!="sheerforce")m.array("secondaries")?.forEach{v->val o=v.asJsonObject;if(random.nextInt(100)<o.number("chance",100))apply(source,target,o,battle)}
         val drain=MoveCompatibility.fraction(m,"drain")
-        if(damage>0&&drain>0)source.heal((damage*drain).roundToInt().coerceAtLeast(1))
+        if(damage>0&&drain>0){val before=source.hp;source.heal((damage*drain).roundToInt().coerceAtLeast(1));battle.recordEffect("HEALED",source.uid,source.uid,source.hp-before)}
     }
     override fun resolved(source:SpireCombatant,move:SpireMove,totalDamage:Int,battle:SpireBattle){
         if(move.trainer)return

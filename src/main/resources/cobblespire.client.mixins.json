@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "package": "dev.cobblespire.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "SpireGuiMixin",
+    "SpireInputMixin",
+    "SpireKeyboardMixin",
+    "SpireHandMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
