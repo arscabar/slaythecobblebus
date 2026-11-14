@@ -30,7 +30,7 @@
 
 ## 포함·제외 및 원본 보존
 
-- 포함: stash의 15개 변경 파일과 12개 새 파일, 일반화한 `build_slay.ps1`, 로컬 런타임 ignore, 현재 후보 안내와 릴리즈/조사 문서. `fabric.mod.json`의 저장소 URL 오타도 실제 origin에 맞췄다.
+- 포함: stash의 15개 변경 파일과 12개 새 파일, 일반화한 `build_slay.ps1`, 로컬 런타임 ignore, 현재 후보 안내와 릴리즈/조사 문서. `fabric.mod.json`의 저장소 URL은 GitHub가 push 응답에서 안내한 정식 주소 `https://github.com/arscabar/slaythecobblebus`를 사용한다. 기존 origin의 `slaythecoblebus`는 그 주소로 이동 안내되며 기존 origin 설정은 유지한다.
 - QA 모드는 추가 피드백 검사로 revision이 바뀐 뒤 스냅샷을 다시 읽도록 수정했다. 별도 Gradle 프로젝트가 루트의 힙 설정을 상속하지 않아 발생한 `Java heap space` 실패는 `integration-tests/gradle.properties`의 3GB 설정으로 보완했다.
 - 제외: `.gradle/`, `.kotlin/`, 모든 `build/`, `run-ui/`, 로그, 의존 JAR, 배포 ZIP/JAR, 실제 게임 데이터, `.multica/`, `AGENTS.md`. 산출물은 `dist/COBB-6/`와 Multica 첨부로 제공한다. 무차별 `git add -A`는 사용하지 않는다.
 - `build_slay.ps1` 원본 SHA256: `22ba7257b87fbf7c6962012b61376c42a9e388255825030d7ae86f576b2b9bb7`. 내용은 JDK/캐시/작업 폴더의 머신 고정 경로와 Gradle 호출뿐이었고 비밀정보는 없었다. 원본 바이트는 `dist/COBB-6/preserved/build_slay.original.ps1`에 보존했다.

@@ -8,8 +8,8 @@
     "CobbleSpire Contributors"
   ],
   "contact": {
-    "homepage": "https://github.com/arscabar/slaythecoblebus",
-    "sources": "https://github.com/arscabar/slaythecoblebus"
+    "homepage": "https://github.com/arscabar/slaythecobblebus",
+    "sources": "https://github.com/arscabar/slaythecobblebus"
   },
   "icon": "assets/cobblespire/icon.png",
   "environment": "*",
