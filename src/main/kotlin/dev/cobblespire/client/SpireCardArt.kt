@@ -26,12 +26,36 @@ object SpireCardArt {
         "bug"->Items.HONEYCOMB;else->Items.QUARTZ
     }
     fun draw(g:GuiGraphics,c:JsonObject,x:Int,y:Int,w:Int,h:Int,hover:Boolean=false,affordable:Boolean=true,key:String=""){
-        val font=Minecraft.getInstance().font;val role=CardSemantics.role(c)
+        val font=Minecraft.getInstance().font;val role=CardSemantics.role(c);val rarity=CardSemantics.rarity(c)
         g.fill(x+3,y+4,x+w+3,y+h+4,0x85000000.toInt())
-        g.fill(x-1,y-1,x+w+1,y+h+1,role.color)
+        g.fill(x-1,y-1,x+w+1,y+h+1,if(rarity==CardRarity.COMMON)role.color else rarity.color)
         if(hover){g.fill(x-2,y-2,x+w+2,y+h+2,SpireSkin.teal)}
         g.blit(frame,x,y,0f,0f,w,h,w,h)
         g.fill(x,y,x+w,y+h,(role.color and 0x00FFFFFF) or 0xA0000000.toInt())
+        if(w<64){
+            // Compact mini-card mode: crisp, bold move name + cost badge at native screen scale.
+            g.fill(x+2,y+2,x+w-2,y+h-2,0xD8151418.toInt())
+            g.fill(x+2,y+2,x+w-2,y+12,role.color)
+            val cost=c.number("cost").toString()
+            g.fill(x+2,y+2,x+11,y+12,0xFF0E1B24.toInt())
+            g.drawString(font,cost,x+4,y+3,0xFFEFFFFB.toInt(),true)
+            g.fill(x+w-7,y+4,x+w-3,y+10,rarity.color)
+            val title=SpireWidgets.move(c.text("move"))+(if(c.get("upgraded")?.asBoolean==true)"+"else "")
+            val titleScale=0.72f
+            val lines=font.split(Component.literal(title),((w-6)/titleScale).toInt().coerceAtLeast(16)).take(2)
+            lines.forEachIndexed{idx,seq->
+                g.pose().pushPose();g.pose().translate(x+3.0,y+15.0+idx*8.0,2.0);g.pose().scale(titleScale,titleScale,1f)
+                g.drawString(font,seq,0,0,0xFFF6EEDB.toInt(),true);g.pose().popPose()
+            }
+            g.pose().pushPose();g.pose().translate(x+w/2.0-6.0,y+h-19.0,0.0);g.pose().scale(0.8f,0.8f,1f)
+            g.renderItem(ItemStack(icon(c)),0,0);g.pose().popPose()
+            if(key.isNotBlank()){
+                g.pose().pushPose();g.pose().translate(x+w-8.0,y+h-8.0,2.0);g.pose().scale(0.65f,0.65f,1f)
+                g.drawString(font,key,0,0,0xFFB7AA92.toInt(),true);g.pose().popPose()
+            }
+            if(!affordable)g.fill(x,y,x+w,y+h,0x65081824)
+            return
+        }
         // Render live content in a fixed design space, so all sizes share the same frame alignment.
         g.pose().pushPose();g.pose().translate(x.toDouble(),y.toDouble(),0.0);g.pose().scale(w/100f,h/150f,1f)
         fun fitted(s:String,xx:Int,yy:Int,max:Int,col:Int){
@@ -56,11 +80,12 @@ object SpireCardArt {
         val preview=c.getAsJsonObject("displayPreview")
         g.pose().pushPose();g.pose().translate(10.0,91.0,1.0);g.pose().scale(.98f,.98f,1f)
         g.drawString(font,font.plainSubstrByWidth(DamageLabels.headline(c,preview),82),0,0,0x362A1D,false);g.pose().popPose()
-        val metrics=if(role==CardRole.ATTACK)"위력 ${c.number("power")} · "+(preview?.let{DamageLabels.matchup(DamageLabels.multiplier(it))}?:"명중 ${c.number("accuracy")}%")else "대상: ${CardSemantics.target(c)}"
+        val hitTag=DamageLabels.hitsText(c).let{if(it.isNotBlank())"$it · " else ""}
+        val metrics=if(role==CardRole.ATTACK)"위력 ${c.number("power")} · $hitTag"+(preview?.let{DamageLabels.matchup(DamageLabels.multiplier(it))}?:"명중 ${c.number("accuracy")}%")else "대상: ${CardSemantics.target(c)}"
         fitted(metrics,10,103,80,0x51422D)
         val line=font.plainSubstrByWidth(description(c),105)
         fitted(line,10,115,80,0x51422D)
-        val flags=listOfNotNull(if(c.get("exhaust")?.asBoolean==true)"소멸"else null,if(c.get("retain")?.asBoolean==true)"보존"else null).joinToString(" · ").ifBlank{role.label+" 카드"}
+        val flags=listOfNotNull(rarity.label,if(c.get("exhaust")?.asBoolean==true)"소멸"else null,if(c.get("retain")?.asBoolean==true)"보존"else null).joinToString(" · ")
         fitted(flags,30,133,43,0x4A3420)
         if(key.isNotBlank())fitted(key,83,133,8,0x4A3420)
         g.pose().popPose()

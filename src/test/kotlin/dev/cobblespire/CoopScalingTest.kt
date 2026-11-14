@@ -96,4 +96,32 @@ class CoopScalingTest {
         assertTrue(b.players[0].active.hp<100)
         assertTrue(b.players[1].active.hp<100)
     }
+
+    @Test fun `temporary offline coop teammate yields turn without defeat and can rejoin`(){
+        val p1=UUID(1,1);val p2=UUID(2,2)
+        val b=SpireBattle(
+            listOf(SpireBattlePlayer(p1,listOf(mon("p1a",120))),SpireBattlePlayer(p2,listOf(mon("p2a",120)))),
+            listOf(mon("enemy",500)),
+            99,
+            speedOf={m->if(m.uid=="enemy")70 else 110}
+        ).also{it.start()}
+        b.endTurn(p1,UUID.randomUUID().toString(),b.revision)
+        val revBeforeOffline=b.revision
+        b.setPlayerOnline(p2,false)
+        assertTrue(b.players[1].alive)
+        assertTrue(b.round>=2)
+        assertTrue(b.revision>revBeforeOffline)
+        assertThrows(IllegalArgumentException::class.java){
+            b.endTurn(p2,UUID.randomUUID().toString(),b.revision)
+        }
+        b.setPlayerOnline(p2,true)
+        assertTrue(b.players[1].alive)
+        b.endTurn(p1,UUID.randomUUID().toString(),b.revision)
+        // After round advances, online p2 gets energy/turn again and can act
+        if(b.players[1].ended)b.endTurn(p1,UUID.randomUUID().toString(),b.revision)
+        assertFalse(b.players[1].ended)
+        val c2=b.players[1].active.deck!!.hand[0]!!
+        b.useMove(p2,0,c2.uid,0,UUID.randomUUID().toString(),b.revision)
+        assertEquals(490,b.enemies[0].hp)
+    }
 }

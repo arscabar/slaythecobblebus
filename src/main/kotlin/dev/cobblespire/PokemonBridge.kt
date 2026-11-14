@@ -10,8 +10,92 @@ import kotlin.random.Random
 
 /** Temporary, unowned native Pokemon supply stats/learnsets; they never enter a real store. */
 class PokemonBridge(private val catalogue:PokemonCatalogue){
-    data class Actor(val body:SpireCombatant,val name:String,val ability:String,val stats:MutableMap<String,Int>,val growth:Map<String,Int>,val aspects:Set<String>,val nativeMoves:List<MoveTemplate>)
-    val supportedAbilities=setOf("blaze","torrent","overgrow","swarm","technician","intimidate","levitate","thickfat","waterabsorb","flashfire","insomnia","vitalspirit","innerfocus","keeneye","clearbody","hypercutter","purepower","hugepower","rockhead","compoundeyes","superluck","shellarmor","battlearmor","naturalcure","regenerator","soundproof","immunity","limber","waterveil","guts","owntempo","solidrock","filter","sheerforce","unnerve","airlock","cloudnine")
+    data class Actor(val body:SpireCombatant,var name:String,var ability:String,val stats:MutableMap<String,Int>,var growth:Map<String,Int>,var aspects:Set<String>,var nativeMoves:List<MoveTemplate>,var level:Int=1,var exp:Int=0){
+        val expToNext get()=80+level*20
+    }
+    fun levelUp(a:Actor,levels:Int=1){
+        repeat(levels){
+            if(a.level>=30)return@repeat
+            a.level++
+            a.growth.forEach{(k,gain)->
+                if(k=="hp"){
+                    a.body.growHp(gain)
+                    a.stats["hp"]=a.body.maxHp
+                }else{
+                    a.stats[k]=(a.stats[k]?:50)+gain
+                }
+            }
+        }
+    }
+    fun grantExp(a:Actor,amount:Int):Int{
+        if(amount<=0||a.level>=30)return 0
+        a.exp+=amount
+        var gained=0
+        while(a.level<30&&a.exp>=a.expToNext){
+            a.exp-=a.expToNext
+            levelUp(a,1)
+            gained++
+        }
+        return gained
+    }
+    fun stageOf(entry:PokemonCatalogue.Entry):Int{
+        val pre1=entry.species.preEvolution?.species?:entry.species.standardForm.preEvolution?.species?:return 0
+        val preEntry=catalogue.entries.firstOrNull{it.id==Definitions.speciesId(pre1.resourceIdentifier.toString())&&it.formName==it.species.standardForm.name}?:return 1
+        val pre2=preEntry.species.preEvolution?.species?:preEntry.species.standardForm.preEvolution?.species
+        return if(pre2==null)1 else 2
+    }
+    fun requiredEvoLevel(stage:Int)=when(stage){0->4;1->8;else->99}
+    fun legalEvolutions(a:Actor):List<PokemonCatalogue.Entry>{
+        val cur=catalogue.entries.firstOrNull{it.id==a.body.species&&it.formName==it.species.standardForm.name}?:return emptyList()
+        val rawTargets=(cur.species.standardForm.evolutions+cur.species.evolutions).mapNotNull{it.result.species?.let{sp->Definitions.speciesId(sp)}}.distinct()
+        return rawTargets.mapNotNull{tid->catalogue.entries.firstOrNull{it.id==tid&&it.formName==it.species.standardForm.name&&reason(it)==null}}
+    }
+    fun canEvolve(a:Actor,credits:Int=0):Boolean{
+        if(legalEvolutions(a).isEmpty())return false
+        val cur=catalogue.entries.firstOrNull{it.id==a.body.species&&it.formName==it.species.standardForm.name}?:return false
+        return credits>0||a.level>=requiredEvoLevel(stageOf(cur))
+    }
+    fun evolve(a:Actor,target:PokemonCatalogue.Entry,seed:Long):String?{
+        require(reason(target)==null){reason(target)?:"Unsupported"}
+        val oldEntry=catalogue.entries.firstOrNull{it.id==a.body.species&&it.formName==it.species.standardForm.name}
+        val oldBase=oldEntry?.let{e->
+            val m=PokemonProperties.parse("${e.id} level=50 nature=hardy").create()
+            stats.forEach{(_,s)->m.ivs[s]=31;m.evs[s]=0}
+            stats.associate{(k,s)->k to m.getStat(s)}
+        }
+        val newMon=PokemonProperties.parse("${target.id} level=50 nature=hardy").create()
+        stats.forEach{(_,s)->newMon.ivs[s]=31;newMon.evs[s]=0}
+        val newBase=stats.associate{(k,s)->k to newMon.getStat(s)}
+        val hpDelta=((newBase["hp"]?:100)-(oldBase?.get("hp")?:80)).coerceAtLeast(18)
+        a.body.growHp(hpDelta)
+        a.stats["hp"]=a.body.maxHp
+        for((k,_) in stats){
+            if(k=="hp")continue
+            val delta=((newBase[k]?:70)-(oldBase?.get(k)?:55)).coerceAtLeast(8)
+            a.stats[k]=(a.stats[k]?:50)+delta
+        }
+        a.body.species=target.id
+        a.body.types=newMon.types.map{it.name.lowercase()}.toSet()
+        a.body.baseForm=target.formName;a.body.form=target.formName
+        a.name=known[target.id]?.text("name_ko")?:target.species.translatedName.string
+        a.ability=requireNotNull(ability(target))
+        a.growth=growth(target)
+        a.aspects=target.aspects
+        val eligible=legalMoves(target).filter{moveReason(it)==null}
+        a.nativeMoves=eligible
+        val deck=a.body.deck?:return null
+        val existingIds=deck.original.map{it.move.id}.toSet()
+        val bonusMove=(eligible.filter{it.name !in existingIds&&it.power>=65}.maxByOrNull{it.power}
+            ?:eligible.firstOrNull{it.name !in existingIds&&it.power>0})
+        if(bonusMove!=null){
+            val nextUid=(deck.original.maxOfOrNull{it.uid}?:10L)+1L
+            val inst=MoveInstance(nextUid,MoveCompatibility.move(bonusMove.name))
+            a.body.deck=BattleDeck(deck.original+inst,Random(seed xor 0xE701L))
+            return bonusMove.name
+        }
+        return null
+    }
+    val supportedAbilities=setOf("blaze","torrent","overgrow","swarm","technician","intimidate","levitate","thickfat","waterabsorb","flashfire","insomnia","vitalspirit","innerfocus","keeneye","clearbody","hypercutter","purepower","hugepower","rockhead","compoundeyes","superluck","shellarmor","battlearmor","naturalcure","regenerator","soundproof","immunity","limber","waterveil","guts","owntempo","solidrock","filter","sheerforce","unnerve","airlock","cloudnine","pressure","drought","drizzle","telepathy")
     private val stats=listOf("hp" to Stats.HP,"atk" to Stats.ATTACK,"def" to Stats.DEFENCE,"spa" to Stats.SPECIAL_ATTACK,"spd" to Stats.SPECIAL_DEFENCE,"spe" to Stats.SPEED)
     private val known=Definitions.characters.associateBy{Definitions.speciesId(it.text("species_id"))}
     fun legalMoves(entry:PokemonCatalogue.Entry):List<MoveTemplate>{
@@ -47,20 +131,24 @@ class PokemonBridge(private val catalogue:PokemonCatalogue){
         val random=Random(seed)
         val eligible=legalMoves(entry).filter{moveReason(it)==null&&(allowed==null||it.name in allowed)}
         require(eligible.any{MoveCompatibility.specs.getValue(it.name).number("basePower")>0}){"No verified attack"}
-        val attacks=eligible.filter{it.power>0}.shuffled(random)
-        val status=eligible.filter{it.power<=0}.shuffled(random)
+        val deckPool=if(enemyHp==null){
+            val commons=eligible.filter{val sm=MoveCompatibility.move(it.name);sm.cost<=3&&CardSemantics.rarity(sm.cost,sm.power,false)==CardRarity.COMMON}
+            if(commons.any{it.power>0})commons else eligible.filter{MoveCompatibility.move(it.name).cost<=3}.ifEmpty{eligible}
+        }else eligible
+        val attacks=deckPool.filter{it.power>0}.shuffled(random)
+        val status=deckPool.filter{it.power<=0}.shuffled(random)
         val own=attacks.filter{it.elementalType.name in mon.types.map{t->t.name}}
         val coverage=attacks.filter{it !in own}
         val selected=mutableListOf<MoveTemplate>();selected.addAll((own+attacks).distinct().take(4));selected.addAll(coverage.take(2))
         selected.addAll(status.filter{MoveCompatibility.specs.getValue(it.name).text("target")=="self"}.take(2));selected.addAll(status.filter{it !in selected}.take(2))
-        val filler=(attacks+status).ifEmpty{eligible};var i=0
+        val filler=(attacks+status).ifEmpty{deckPool};var i=0
         while(selected.size<10){selected.add(filler[i++%filler.size])}
         val cards=selected.take(if(enemyHp==null)9 else 10).mapIndexed{index,m->MoveInstance(index.toLong()+1,MoveCompatibility.move(m.name))}.toMutableList()
         if(enemyHp==null)cards.add(MoveInstance(10,TrainerCards.encourage))
         val deck=BattleDeck(cards,Random(seed xor 0x32CAFEBABEL))
         val body=SpireCombatant(uid,entry.id,mon.types.map{it.name.lowercase()}.toSet(),enemyHp?:values.getValue("hp"),deck)
         body.baseForm=entry.formName;body.form=entry.formName
-        return Actor(body,known[entry.id]?.text("name_ko")?:entry.species.translatedName.string,requireNotNull(ability(entry)),values,growth,entry.aspects,eligible)
+        return Actor(body,known[entry.id]?.text("name_ko")?:entry.species.translatedName.string,requireNotNull(ability(entry)),values,growth,entry.aspects,eligible,level)
     }
     fun audit():JsonObject=JsonObject().apply{
         addProperty("policy","Only verified metadata operations and native legal learnsets; unsupported callbacks/forms/abilities are excluded")

@@ -53,4 +53,19 @@ class NativeEffectsTest {
   p.body.afflict("sleep",1,2);p.body.afflict("confusion",1,4);p.body.afflict("flinch",1)
   fx.switched(p.body,into.body,battle);assertEquals(2,p.body.statuses["sleep"]!!.remaining);assertFalse("confusion" in p.body.statuses);assertFalse("flinch" in p.body.statuses)
  }
+ @Test fun `paralysis persists across rounds halves speed and burn halves physical damage`(){
+  val p=a("player:0");val e=a("enemy:0");val burnTarget=a("enemy:1")
+  val fx=NativeEffects(listOf(p,e,burnTarget).associateBy{it.body.uid},7)
+  val b=SpireBattle(listOf(SpireBattlePlayer(UUID(1,2),listOf(p.body.apply{deck=BattleDeck((1L..6L).map{MoveInstance(it,MoveCompatibility.move("thunderwave"))},kotlin.random.Random(1))}))),listOf(e.body),7,effects=fx).also{it.start()}
+  val card=p.body.deck!!.hand[0]!!
+  b.useMove(UUID(1,2),0,card.uid,0,"par",b.revision)
+  assertTrue("paralysis" in e.body.statuses)
+  assertEquals(0,e.body.statuses["paralysis"]!!.remaining)
+  assertEquals(50.0,fx.effectiveSpeed(e.body))
+  repeat(3){b.endTurn(UUID(1,2),"end-$it",b.revision)}
+  assertTrue("paralysis" in e.body.statuses)
+  fx.hit(p.body,burnTarget.body,MoveCompatibility.move("willowisp"),0,b)
+  assertTrue("burn" in burnTarget.body.statuses)
+  assertTrue(fx.estimate(burnTarget.body,p.body,MoveCompatibility.move("tackle")).second<fx.estimate(e.body,p.body,MoveCompatibility.move("tackle")).second)
+ }
 }

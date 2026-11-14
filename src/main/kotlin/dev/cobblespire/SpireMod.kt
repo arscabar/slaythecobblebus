@@ -16,10 +16,14 @@ class SpireMod:ModInitializer {
         ServerLifecycleEvents.SERVER_STARTED.register{server->catalogue=PokemonCatalogue().also{it.reload();it.writeAudit()};trials=TrialService(server,requireNotNull(catalogue));trials!!.writeAudit();logger.info("CobbleSpire registry: {} forms",catalogue!!.entries.size)}
         ServerLifecycleEvents.SERVER_STOPPING.register{trials?.clear()}
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.END_SERVER_TICK.register{trials?.arena?.tick()}
-        net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.JOIN.register{handler,_,_->trials?.arena?.recover(handler.player)}
-        net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.DISCONNECT.register{handler,_->trials?.leave(handler.player)}
+        net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.JOIN.register{handler,_,server->
+            // Defer reconnect or arena return teleport until after PlayerList.placeNewPlayer finishes addNewPlayer.
+            val id=handler.player.uuid
+            server.execute{server.playerList.getPlayer(id)?.let{if(!it.hasDisconnected()&&trials?.onReconnect(it)!=true)trials?.arena?.recover(it)}}
+        }
+        net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.DISCONNECT.register{handler,_->trials?.onDisconnect(handler.player)}
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_LOAD.register{entity,level->
-            if(WorldArena.inside(level)&&entity !is ServerPlayer&&trials?.arena?.presentation(entity.uuid)!=true)entity.discard()
+            if(WorldArena.inside(level)&&entity !is ServerPlayer&&trials?.arena?.presentation(entity.uuid)!=true)entity.remove(net.minecraft.world.entity.Entity.RemovalReason.DISCARDED)
         }
         net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.ALLOW_DAMAGE.register{entity,_,_->!WorldArena.inside(entity.level())}
         net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents.BEFORE.register{level,_,_,_,_->!WorldArena.inside(level)}

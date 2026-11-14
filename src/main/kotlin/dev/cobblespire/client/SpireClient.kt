@@ -13,7 +13,7 @@ import org.lwjgl.glfw.GLFW
 
 class SpireClient:ClientModInitializer {
     override fun onInitializeClient(){
-        net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.DISCONNECT.register{_,_->SeenDeckMotions.clear();WorldBattleView.clear();SpireMusic.clear()}
+        net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.DISCONNECT.register{_,_->SeenDeckMotions.clear();SpireAnim.clear();WorldBattleView.clear();SpireMusic.clear()}
         val key=KeyBindingHelper.registerKeyBinding(KeyMapping("key.cobblespire.open",InputConstants.Type.KEYSYM,GLFW.GLFW_KEY_F10,"key.categories.cobblespire"))
         ClientTickEvents.END_CLIENT_TICK.register{mc->WorldBattleView.tick(mc);SpireMusic.tick(mc);while(key.consumeClick())if(mc.player!=null&&mc.screen==null){
             if(ClientPlayNetworking.canSend(SpirePayload.TYPE))send("open")else mc.player?.displayClientMessage(Component.literal("서버에 CobbleSpire가 설치되어 있지 않습니다."),false)
@@ -26,6 +26,14 @@ class SpireClient:ClientModInitializer {
                 "error"->{(ctx.client().screen as? SpirePane)?.showError(d.text("message"))?:ctx.client().player?.displayClientMessage(Component.literal(d.text("message")),false)}
                 "catalog"->ctx.client().setScreen(RegistryScreen(d))
                 "menu"->{WorldBattleView.clear();SpireMusic.exitFacility();ctx.client().setScreen(SpireMenuScreen(d))}
+                "map"->{
+                    val current=ctx.client().screen
+                    if(current is SpireMapScreen)current.accept(d) else ctx.client().setScreen(SpireMapScreen(d))
+                }
+                "event"->{
+                    val current=ctx.client().screen
+                    if(current is SpireEventScreen)current.accept(d) else ctx.client().setScreen(SpireEventScreen(d))
+                }
                 "battle"->{
                     WorldBattleView.update(d);SpireMusic.onBattle(d.text("encounter"));val current=ctx.client().screen
                     if(d.text("phase") in setOf("VICTORY","DEFEAT")){

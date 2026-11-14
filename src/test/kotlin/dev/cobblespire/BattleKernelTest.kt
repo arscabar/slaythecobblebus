@@ -89,5 +89,22 @@ class BattleKernelTest {
     @Test fun `HP budget applies party and enemy count multipliers once`(){
         val hp=SpirePartyRules.hpBudget(240,1.0,listOf(1.0,1.0,1.0),3);assertEquals(745,hp.sum());assertEquals(listOf(248,248,249),hp)
     }
+    @Test fun `burn periodic damage and paralysis turn skip emit status events and paralysis stays active`(){
+        val events=mutableListOf<SpireBattleEvent>()
+        val a=mon("a",160);a.afflict("burn",1,0)
+        val b=battle(listOf(a),listOf(mon("enemy",200)),SpireBattleHook{ev,_->events.add(ev)})
+        end(b)
+        assertEquals(150,a.hp)
+        assertTrue(events.any{it.name=="STATUS_DAMAGE"&&it.moveId=="burn"&&it.amount==10&&it.target=="a"})
+        a.statuses.clear();a.afflict("paralysis",1,0)
+        events.clear()
+        for(i in 1..25){
+            val slot=b.players[0].active.deck!!.hand.firstOrNull()?:break
+            b.useMove(id,0,slot.uid,0,"par-$i",b.revision)
+            if(b.players[0].energy==0)end(b)
+        }
+        assertTrue("paralysis" in a.statuses)
+        assertTrue(events.any{it.name=="MOVE_PARALYZED"})
+    }
 
 }

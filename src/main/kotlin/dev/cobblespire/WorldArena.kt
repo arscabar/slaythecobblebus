@@ -1,5 +1,10 @@
 package dev.cobblespire
 
+import com.bedrockk.molang.runtime.MoLangRuntime
+import com.cobblemon.mod.common.api.moves.animations.ActionEffectContext
+import com.cobblemon.mod.common.api.moves.animations.ActionEffects
+import com.cobblemon.mod.common.api.moves.animations.TargetsProvider
+import com.cobblemon.mod.common.api.moves.animations.UsersProvider
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity
 import com.google.gson.JsonObject
@@ -14,13 +19,14 @@ import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.storage.LevelResource
+import net.minecraft.world.phys.AABB
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 import java.util.UUID
 
 /** Dedicated world presentation. These unowned entities never enter a player's Pokemon store. */
 class WorldArena(private val server:MinecraftServer){
-    data class Scene(val cx:Int,val entities:MutableMap<String,PokemonEntity> = mutableMapOf(),val players:MutableSet<UUID> = mutableSetOf())
+    data class Scene(val cx:Int,val entities:MutableMap<String,PokemonEntity> = mutableMapOf(),val homes:MutableMap<String,Triple<Double,Double,Float>> = mutableMapOf(),val players:MutableSet<UUID> = mutableSetOf(),var animHoldUntil:Long = 0L)
     private val scenes=mutableMapOf<UUID,Scene>()
     private val playerSession=mutableMapOf<UUID,Pair<UUID,Int>>()
     private var nextSlot=0
@@ -31,9 +37,11 @@ class WorldArena(private val server:MinecraftServer){
     private fun record(id:UUID)=server.getWorldPath(LevelResource.ROOT).resolve("data/cobblespire-returns/$id.json")
     private fun seatZ(slot:Int)=-9.0+slot*6.0
     fun enter(p:ServerPlayer,sessionId:UUID=p.uuid,slot:Int=0){
+        if(p.uuid !in playerSession&&Files.exists(record(p.uuid)))recover(p)
         require(p.uuid !in playerSession)
         require(p.level().dimension()!=KEY){"원래 위치 복구 후 다시 시작하세요."}
         val w=world;val isNew=sessionId !in scenes;val scene=scenes.getOrPut(sessionId){Scene(nextSlot++*128)}
+        purgeForeignPokemon(w)
         val returnData=JsonObject().apply{addProperty("dimension",p.level().dimension().location().toString());addProperty("x",p.x);addProperty("y",p.y);addProperty("z",p.z);addProperty("yaw",p.yRot);addProperty("pitch",p.xRot)}
         val path=record(p.uuid);Files.createDirectories(path.parent)
         val tmp=path.resolveSibling(path.fileName.toString()+".tmp")
@@ -52,9 +60,9 @@ class WorldArena(private val server:MinecraftServer){
                     for(y in 64..69)w.setBlock(BlockPos(scene.cx+x,y,z),Blocks.DEEPSLATE_BRICKS.defaultBlockState(),3)
                     w.setBlock(BlockPos(scene.cx+x,70,z),Blocks.SEA_LANTERN.defaultBlockState(),3)
                 }
-                for(z in -15..15){w.setBlock(BlockPos(scene.cx-16,64,z),Blocks.CHISELED_STONE_BRICKS.defaultBlockState(),3)}
             }
             p.teleportTo(w,scene.cx-20.5,64.0,seatZ(slot),-105f,12f)
+            check(p.level().dimension()==KEY&&!p.isRemoved){"아레나 차원 이동에 실패했습니다. 재접속 후 다시 시도하세요."}
         }catch(e:Exception){leave(p);throw e}
     }
     fun sync(p:ServerPlayer,data:JsonObject):JsonObject{
@@ -66,12 +74,15 @@ class WorldArena(private val server:MinecraftServer){
         enemies.forEachIndexed{i,v->slots.add(Triple(v.asJsonObject,s.cx+(i-(enemies.size()-1)/2.0)*7,-6.0))}
         val alive=slots.filter{it.first.number("hp")>0}.map{it.first.text("uid")}.toSet()
         s.entities.keys.filter{it !in alive}.toList().forEach{s.entities.remove(it)?.let(::remove)}
+        purgeForeignPokemon(w)
         for((c,x,z) in slots){
             if(c.number("hp")<=0)continue
-            val id=c.text("uid")
+            val id=c.text("uid");val species=c.text("species");val isBoss=c.get("boss")?.asBoolean==true
+            s.entities[id]?.let{cur->if(cur.pokemon.species.resourceIdentifier.toString()!=species){s.entities.remove(id)?.let(::remove)}}
             val e=s.entities.getOrPut(id){
-                PokemonProperties.parse("${c.text("species")} level=50 uncatchable=true").createEntity(w).also{e->
-                    e.pokemon.scaleModifier *= (1.2f/e.bbHeight.coerceAtLeast(.1f)).coerceAtLeast(1f).coerceAtMost(4f)
+                PokemonProperties.parse("$species level=50 uncatchable=true").createEntity(w).also{e->
+                    val bossScale=if(isBoss)1.35f else 1f
+                    e.pokemon.scaleModifier *= (1.2f/e.bbHeight.coerceAtLeast(.1f)).coerceAtLeast(1f).coerceAtMost(4f)*bossScale
                     e.isNoAi=true;e.isInvulnerable=true;e.isSilent=true;e.setNoGravity(true);e.setPersistenceRequired()
                     e.addTag(TAG);e.entityData.set(PokemonEntity.UNBATTLEABLE,true)
                     e.moveTo(x,64.0,z,if(z>0)180f else 0f,0f)
@@ -79,8 +90,11 @@ class WorldArena(private val server:MinecraftServer){
                     require(w.addFreshEntity(e)){"전장 포켓몬 생성에 실패했습니다."}
                 }
             }
-            e.moveTo(x,64.0,z,if(z>0)180f else 0f,0f);e.yHeadRot=e.yRot;e.yBodyRot=e.yRot
-            e.customName=Component.literal(c.text("name")+"  ${c.number("hp")}/${c.number("maxHp")} HP")
+            val yaw=if(z>0)180f else 0f
+            s.homes[id]=Triple(x,z,yaw)
+            e.moveTo(x,64.0,z,yaw,0f);e.yHeadRot=e.yRot;e.yBodyRot=e.yRot
+            val bossTag=if(isBoss)"§c★ [보스] §f" else ""
+            e.customName=net.minecraft.network.chat.Component.literal(bossTag).append(e.pokemon.species.translatedName).append("  ${c.number("hp")}/${c.number("maxHp")} HP")
             e.isCustomNameVisible=true
         }
         val extra=(allies.size-1).coerceAtLeast(0)
@@ -90,10 +104,52 @@ class WorldArena(private val server:MinecraftServer){
             add("entities",JsonObject().also{o->s.entities.forEach{(k,v)->o.addProperty(k,v.id)}})
         }
     }
-    fun tick(){playerSession.forEach{(id,pair)->val s=scenes[pair.first]?:return@forEach;server.playerList.getPlayer(id)?.let{p->
-        if(p.level().dimension()!=KEY||p.x !in (s.cx-23.0)..(s.cx-17.0)||p.z !in -17.0..17.0||p.y<63||p.y>70)
-            p.teleportTo(world,s.cx-20.5,64.0,seatZ(pair.second),-105f,12f)
+    private fun purgeForeignPokemon(w:net.minecraft.server.level.ServerLevel){
+        val tracked=scenes.values.flatMap{it.entities.values}.map{it.uuid}.toSet()
+        w.allEntities.filter{it !is ServerPlayer&&it.uuid !in tracked}.forEach{presentationIds.remove(it.uuid);it.remove(net.minecraft.world.entity.Entity.RemovalReason.DISCARDED)}
+    }
+    fun tick(){
+        if(playerSession.isNotEmpty())purgeForeignPokemon(world)
+        val now=System.currentTimeMillis()
+        scenes.values.forEach{s->
+            if(now>s.animHoldUntil){
+                s.entities.forEach{(id,e)->
+                    val home=s.homes[id]?:return@forEach
+                    val(hx,hz,hyaw)=home
+                    if(kotlin.math.abs(e.x-hx)>0.15||kotlin.math.abs(e.y-64.0)>0.15||kotlin.math.abs(e.z-hz)>0.15){
+                        e.setDeltaMovement(0.0,0.0,0.0)
+                        e.moveTo(hx,64.0,hz,hyaw,0f);e.yHeadRot=hyaw;e.yBodyRot=hyaw
+                    }
+                }
+            }
+        }
+        playerSession.forEach{(id,pair)->val s=scenes[pair.first]?:return@forEach;server.playerList.getPlayer(id)?.let{p->
+        if(p.level().dimension()!=KEY||p.x !in (s.cx-23.5)..(s.cx+23.5)||p.z !in -19.5..19.5||p.y<63||p.y>85)
+            p.teleportTo(world,s.cx-20.5,64.0,seatZ(pair.second),p.yRot,p.xRot)
     }}}
+    fun playMoveAnimation(sessionId:UUID,actorUid:String,targetUid:String,moveId:String,category:String,miss:Boolean){
+        val s=scenes[sessionId]?:return
+        val actor=s.entities[actorUid]?:return
+        val target=s.entities[targetUid]?:actor
+        s.animHoldUntil=System.currentTimeMillis()+1200L
+        val effect=ActionEffects.actionEffects[ResourceLocation.fromNamespaceAndPath("cobblemon",moveId)]
+        if(effect!=null){
+            runCatching{effect.run(ActionEffectContext(actionEffect=effect,providers=mutableListOf(UsersProvider(actor),TargetsProvider(target)),runtime=MoLangRuntime(),level=world))}
+        }
+        val anim=when(category){"physical"->"physical";"special"->"special";else->"status"}
+        runCatching{actor.playAnimation(anim,emptyList())}
+        if(!miss&&target!==actor)runCatching{target.playAnimation("recoil",emptyList())}
+    }
+    fun detachForOffline(p:ServerPlayer){
+        val (sessionId,_)=playerSession.remove(p.uuid)?:return
+        scenes[sessionId]?.players?.remove(p.uuid)
+    }
+    fun reenter(p:ServerPlayer,sessionId:UUID,slot:Int){
+        val scene=scenes[sessionId]?:run{enter(p,sessionId,slot);return}
+        if(p.uuid !in scene.players)scene.players.add(p.uuid)
+        playerSession[p.uuid]=sessionId to slot
+        p.teleportTo(world,scene.cx-20.5,64.0,seatZ(slot),-105f,12f)
+    }
     fun leave(p:ServerPlayer){
         val (sessionId,_)=playerSession.remove(p.uuid)?:run{recover(p);return}
         scenes[sessionId]?.let{s->s.players.remove(p.uuid);if(s.players.isEmpty())scenes.remove(sessionId)?.entities?.values?.forEach(::remove)}
@@ -107,9 +163,12 @@ class WorldArena(private val server:MinecraftServer){
         }
         val d=JsonParser.parseString(Files.readString(path)).asJsonObject
         val key=ResourceKey.create(Registries.DIMENSION,ResourceLocation.parse(d.text("dimension")))
-        val target=server.getLevel(key)?:server.overworld()
-        p.teleportTo(target,d.get("x").asDouble,d.get("y").asDouble,d.get("z").asDouble,d.get("yaw").asFloat,d.get("pitch").asFloat)
-        Files.delete(path)
+        val target=(if(key==KEY)null else server.getLevel(key))?:server.overworld()
+        val x=if(key==KEY)target.sharedSpawnPos.x+.5 else d.get("x").asDouble
+        val y=if(key==KEY)target.sharedSpawnPos.y.toDouble() else d.get("y").asDouble
+        val z=if(key==KEY)target.sharedSpawnPos.z+.5 else d.get("z").asDouble
+        p.teleportTo(target,x,y,z,d.get("yaw").asFloat,d.get("pitch").asFloat)
+        if(p.level().dimension()!=KEY)Files.delete(path)
     }
     fun close(){playerSession.keys.toList().forEach{server.playerList.getPlayer(it)?.let(::leave)}}
     companion object {

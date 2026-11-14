@@ -21,7 +21,9 @@ object MoveCompatibility {
         if(m.obj("extraEffects")?.size()!=0)return "추가 원본 규칙 검증 전: "+m.obj("extraEffects")!!.keySet().joinToString()
         if(m.text("type").lowercase() !in types)return "추가 타입의 상성 검증 전"
         if(m.text("target") !in setOf("normal","adjacentFoe","any","self","allAdjacentFoes"))return "원본 대상 범위 검증 전: "+m.text("target")
-        for(k in listOf("weather","terrain","sideCondition","pseudoWeather","selfdestruct","damage","multihit"))if(m.get(k)?.isJsonNull==false)return "원본 $k 효과 검증 전"
+        for(k in listOf("weather","terrain","sideCondition","pseudoWeather","selfdestruct","damage"))if(m.get(k)?.isJsonNull==false)return "원본 $k 효과 검증 전"
+        val (minH,maxH)=multihitRange(m)
+        if(minH<1||maxH<minH||maxH>5)return "원본 multihit 효과 검증 전"
         fun effect(o:JsonObject?):Boolean {
             if(o==null)return true
             if(o.text("status").let{it.isNotBlank()&&it !in allowedStatuses})return false
@@ -36,15 +38,37 @@ object MoveCompatibility {
         if(!hasEffect)return "실행할 효과 검증 전"
         return null
     }
+    fun multihitRange(m:JsonObject):Pair<Int,Int> {
+        val v=m.get("multihit")?:return 1 to 1
+        if(v.isJsonNull)return 1 to 1
+        if(v.isJsonPrimitive&&v.asJsonPrimitive.isNumber){val n=v.asInt;return n to n}
+        if(v.isJsonArray&&v.asJsonArray.size()==2){
+            val a=v.asJsonArray
+            if(a[0].isJsonPrimitive&&a[0].asJsonPrimitive.isNumber&&a[1].isJsonPrimitive&&a[1].asJsonPrimitive.isNumber)return a[0].asInt to a[1].asInt
+        }
+        return -1 to -1
+    }
     fun fraction(m:JsonObject,key:String):Double {val a=m.array(key)?:return 0.0;return a[0].asDouble/a[1].asDouble}
     fun accuracy(id:String):Int {val a=specs.getValue(id).get("accuracy");return if(a.isJsonPrimitive&&a.asJsonPrimitive.isBoolean)100 else a.asDouble.toInt()}
     fun move(id:String):SpireMove {
         require(reason(id)==null){"$id: ${reason(id)}"};val m=specs.getValue(id);val power=m.number("basePower")
+        val (minHits,maxHits)=multihitRange(m)
+        val avgHits=if(minHits==2&&maxHits==5)3.1 else (minHits+maxHits)/2.0
+        val effectivePower=kotlin.math.round(power*avgHits).toInt()
+        val boostSum=(m.obj("boosts")?.entrySet()?.sumOf{kotlin.math.abs(it.value.asInt)}?:0)+(m.obj("self")?.obj("boosts")?.entrySet()?.sumOf{kotlin.math.abs(it.value.asInt)}?:0)
         val cost=when(id){"tackle","leechseed"->1;"flamethrower","gigadrain","swordsdance","irondefense","synthesis"->2;"hydropump"->3
-            else->if(power>100)3 else if(power>65||m.text("target")=="self"||m.has("heal"))2 else 1}
-        return SpireMove(id,cost,power,m.text("type").lowercase(),accuracy(id),healFraction=fraction(m,"heal"),selfTarget=m.text("target")=="self",targetAll=m.text("target")=="allAdjacentFoes")
+            else->when{
+                m.text("target")=="self"&&!m.has("heal")->if(boostSum>=3)3 else if(boostSum==2)2 else 1
+                effectivePower>=140->5
+                effectivePower>=115->4
+                effectivePower>95->3
+                effectivePower>65||m.has("heal")->2
+                else->1
+            }
+        }
+        return SpireMove(id,cost,power,m.text("type").lowercase(),accuracy(id),healFraction=fraction(m,"heal"),selfTarget=m.text("target")=="self",targetAll=m.text("target")=="allAdjacentFoes",minHits=minHits,maxHits=maxHits)
     }
-    fun cost(card:MoveInstance)=if(card.upgraded&&card.move.id in setOf("hydropump","swordsdance","irondefense"))card.move.cost-1 else card.move.cost
+    fun cost(card:MoveInstance)=if(card.upgraded&&(card.move.cost>=3||card.move.id in setOf("swordsdance","irondefense")))card.move.cost-1 else card.move.cost
     fun upgradeMultiplier(id:String)=when(id){"flamethrower"->1.15;"gigadrain"->1.10;"hydropump","swordsdance","irondefense"->1.0;else->1.20}
     fun multiplier(attack:String,defence:Set<String>):Double=defence.fold(1.0){out,t->
         val row=snapshot.getAsJsonObject("types").obj(t)?:error("Unsupported type $t")

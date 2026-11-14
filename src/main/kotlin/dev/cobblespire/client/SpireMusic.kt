@@ -34,10 +34,15 @@ object SpireMusic {
     var facility:Track?=null
 
     private val elite=setOf("ACT1-R04","ACT1-R05","ACT2-M03","ACT2-A03","ACT3-G03","ACT3-G04")
-    private val boss=setOf("ACT1-R06","ACT1-R07","ACT2-M04","ACT2-A04","ACT3-G05","ACT3-G06")
+    private val boss=setOf("ACT1-R06","ACT1-R07","ACT2-M04","ACT2-A04","ACT3-G05","ACT3-G06","BOSS_ACT1","BOSS_ACT2_MAGMA","BOSS_ACT2_AQUA","BOSS_ACT3")
     private val actClearBosses=setOf(Track.BOSS_ACT1,Track.BOSS_ACT2_MAGMA,Track.BOSS_ACT2_AQUA)
     fun battleTrack(encounter:String):Track=when{
-        encounter in boss->when{encounter.startsWith("ACT2-M")->Track.BOSS_ACT2_MAGMA;encounter.startsWith("ACT2-A")->Track.BOSS_ACT2_AQUA;encounter.startsWith("ACT3")->Track.BOSS_ACT3;else->Track.BOSS_ACT1}
+        encounter in boss->when{
+            encounter=="BOSS_ACT2_MAGMA"||encounter.startsWith("ACT2-M")->Track.BOSS_ACT2_MAGMA
+            encounter=="BOSS_ACT2_AQUA"||encounter.startsWith("ACT2-A")->Track.BOSS_ACT2_AQUA
+            encounter=="BOSS_ACT3"||encounter.startsWith("ACT3")->Track.BOSS_ACT3
+            else->Track.BOSS_ACT1
+        }
         encounter in elite->Track.BATTLE_ELITE
         encounter.startsWith("ACT2-M")->Track.BATTLE_ACT2_MAGMA
         encounter.startsWith("ACT2-A")->Track.BATTLE_ACT2_AQUA

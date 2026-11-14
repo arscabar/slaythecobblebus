@@ -6,12 +6,13 @@ import dev.cobblespire.*
 /** Non-attacks do not inherit any of the attack-only tooltip rows, even from old payloads. */
 object CardTooltip {
     fun lines(c:JsonObject,name:String,description:String,typeLabel:String,p:JsonObject?,unavailable:String=""):List<String>{
-        val role=CardSemantics.role(c)
+        val role=CardSemantics.role(c);val rarity=CardSemantics.rarity(c)
         return buildList{
-            add("$name · ${role.label} · 에너지 ${c.number("cost")}")
+            add("$name · ${rarity.label} · ${role.label} · 에너지 ${c.number("cost")}")
             if(role==CardRole.ATTACK){
-                add("$typeLabel 타입 · 기본 위력 ${c.number("power")}")
-                p?.let{add("${it.text("targetName")}: ${DamageLabels.headline(c,it)}");add("${DamageLabels.matchup(DamageLabels.multiplier(it))} · 명중 ${it.number("accuracy")}%");add("명중 시 예상 HP 감소 · 급소 제외")}
+                val hitTag=DamageLabels.hitsText(c).let{if(it.isNotBlank())" · $it" else ""}
+                add("$typeLabel 타입 · 기본 위력 ${c.number("power")}$hitTag")
+                p?.let{val tName=SpireWidgets.speciesName(it.text("targetSpecies"),it.text("targetName"));add("$tName: ${DamageLabels.headline(c,it)}");add("${DamageLabels.matchup(DamageLabels.multiplier(it))} · 명중 ${it.number("accuracy")}%");add("명중 시 예상 HP 감소 · 급소 제외")}
             }else{
                 add(c.text("effectSummary").ifBlank{if(c.number("draw")>0)"카드 ${c.number("draw")}장 뽑기"else "효과 적용"})
                 add("대상: ${CardSemantics.target(c)}")

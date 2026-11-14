@@ -82,46 +82,85 @@ class SpireButton(x:Int,y:Int,w:Int,h:Int,label:Component,onPress:Button.OnPress
     var selected=false
     var primary=false
     var pile=false
+    var hpRatio:Float?=null
+    private var hoverAnim=0f
+    private var lastFrameMs=SpireAnim.now()
+    private var pressAt=0L
+    override fun onPress(){
+        pressAt=SpireAnim.now()
+        super.onPress()
+    }
     override fun renderWidget(g:GuiGraphics,mx:Int,my:Int,delta:Float){
+        val now=SpireAnim.now()
+        val dt=((now-lastFrameMs).coerceIn(0L,80L))/1000f
+        lastFrameMs=now
         val hot=isHoveredOrFocused&&active
-        val edge=when{
+        hoverAnim=SpireAnim.approach(hoverAnim,if(hot)1f else 0f,dt,16f)
+        val pressing=now-pressAt<150L
+        val yOff=if(pressing)1 else 0
+        val pulse=if(primary&&active)SpireAnim.pulse(1800L) else 0f
+
+        val baseEdge=when{
+            selected->0xFF7BF2DE.toInt()
             !active->0xFF3E3A35.toInt()
-            primary->if(hot)0xFFF3C66F.toInt()else 0xFFC78D44.toInt()
-            selected||hot->SpireSkin.teal
+            primary->SpireAnim.lerpColor(0xFFC78D44.toInt(),0xFFF6CB70.toInt(),pulse*0.45f)
             else->SpireSkin.gold
         }
-        if(pile){
-            for(i in 2 downTo 1)SpireSkin.panel(g,x+i*2,y-i*3,width,height,0xFF5A4E3B.toInt())
+        val hotEdge=when{
+            selected->0xFFA6FFF0.toInt()
+            primary->0xFFFFDF85.toInt()
+            else->SpireSkin.teal
         }
-        SpireSkin.panel(g,x,y,width,height,edge)
-        val top=when{
+        val edge=if(!active)baseEdge else SpireAnim.lerpColor(baseEdge,hotEdge,hoverAnim)
+        SpireSkin.panel(g,x,y+yOff,width,height,edge)
+
+        val baseTop=when{
+            selected->0xFF286960.toInt()
             !active->0xFF171618.toInt()
-            primary->if(hot)0xFF8C3328.toInt()else 0xFF6B221B.toInt()
-            selected->0xFF21524B.toInt()
-            hot->0xFF383028.toInt()
+            primary->0xFF6B221B.toInt()
             else->0xFF262220.toInt()
         }
+        val hotTop=when{
+            selected->0xFF317E73.toInt()
+            primary->0xFF8E3429.toInt()
+            else->0xFF383028.toInt()
+        }
+        val top=if(!active)baseTop else SpireAnim.lerpColor(baseTop,hotTop,hoverAnim)
         val bottom=when{
+            selected->0xFF153833.toInt()
             !active->0xFF101012.toInt()
             primary->0xFF33100D.toInt()
-            selected->0xFF122C29.toInt()
             else->0xFF131214.toInt()
         }
-        g.fillGradient(x+2,y+2,x+width-2,y+height-2,top,bottom)
-        if(hot&&active){
-            g.fill(x+3,y+2,x+width-3,y+3,0x55FFFFFF)
+        g.fillGradient(x+2,y+2+yOff,x+width-2,y+height-2+yOff,top,bottom)
+        if(hoverAnim>0.02f&&active){
+            g.fill(x+3,y+2+yOff,x+width-3,y+3+yOff,SpireAnim.withAlpha(0xFFFFFF,hoverAnim*0.35f))
+        }
+        if(primary&&active){
+            val cycle=((now%2600L)/2600f)
+            if(cycle<0.42f)SpireAnim.drawSheen(g,x+2,y+2+yOff,width-4,height-4,cycle/0.42f,0x2CFFF4D0)
+        }
+        if(pressing){
+            val pFade=1f-((now-pressAt)/150f)
+            g.fill(x+2,y+2+yOff,x+width-2,y+height-2+yOff,SpireAnim.withAlpha(0xFFE7B8,pFade*0.28f))
         }
         if(selected){
-            g.fill(x+2,y+3,x+4,y+height-3,SpireSkin.teal)
+            g.fill(x+2,y+2+yOff,x+5,y+height-2+yOff,0xFFF3C66F.toInt())
         }
         val font=Minecraft.getInstance().font
         val label=font.plainSubstrByWidth(message.string,(width-10).coerceAtLeast(1))
         val ink=when{
+            selected->0xFFFFF6D6.toInt()
             !active->0x6B665E
-            primary->if(hot)0xFFFDF0D0.toInt()else 0xF2D8A7
-            hot||selected->0xE9FFF5
-            else->0xE8DEC4
+            primary->SpireAnim.lerpColor(0xFFF2D8A7.toInt(),0xFFFFF6DC.toInt(),hoverAnim)
+            else->SpireAnim.lerpColor(0xFFE8DEC4.toInt(),0xFFE9FFF5.toInt(),hoverAnim)
         }
-        g.drawCenteredString(font,label,x+width/2,y+(height-8)/2,ink)
+        g.drawCenteredString(font,label,x+width/2,y+(height-8)/2+yOff,ink)
+        hpRatio?.let{ratio->
+            val r=ratio.coerceIn(0f,1f);val bw=(width-6).coerceAtLeast(4);val bx=x+3;val by=y+height-3+yOff
+            g.fill(bx,by,bx+bw,by+2,0xFF141316.toInt())
+            val fw=(bw*r).toInt()
+            if(fw>0){val col=if(r>0.5f)0xFF56B890.toInt()else if(r>0.2f)0xFFE2AE4B.toInt()else 0xFFC74643.toInt();g.fill(bx,by,bx+fw,by+2,col)}
+        }
     }
 }

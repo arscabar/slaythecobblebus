@@ -52,8 +52,19 @@ class NativeEffects(val actors:Map<String,PokemonBridge.Actor>,seed:Long):SpireE
         if(upgraded)damage=floor(damage*MoveCompatibility.upgradeMultiplier(move.id)).toInt()
         return damage.coerceAtLeast(1)
     }
+    fun effectiveSpeed(mon:SpireCombatant):Double{
+        val base=actors[mon.uid]?.stats?.get("spe")?.toDouble()?:100.0
+        val paralysed=if("paralysis" in mon.statuses)0.5 else 1.0
+        return base*stage(mon,"spe")*paralysed
+    }
     override fun damage(source:SpireCombatant,target:SpireCombatant,move:SpireMove,upgraded:Boolean,multiplier:Double):Double {
-        val ratio=spec(move).number("critRatio",1)+(if(ability(source)=="superluck")1 else 0)
+        val speRatio=effectiveSpeed(source)/effectiveSpeed(target).coerceAtLeast(1.0)
+        val speBonus=when{
+            (source.stages["spe"]?:0)>=4||speRatio>=1.8->2
+            (source.stages["spe"]?:0)>=2||speRatio>=1.25->1
+            else->0
+        }
+        val ratio=spec(move).number("critRatio",1)+(if(ability(source)=="superluck")1 else 0)+speBonus
         val chance=when{ratio>=4->1;ratio==3->2;ratio==2->8;else->24}
         return referenceDamage(source,target,move,random.nextInt(85,101),random.nextInt(chance)==0,upgraded,multiplier,spreadActive).toDouble()
     }
@@ -64,7 +75,9 @@ class NativeEffects(val actors:Map<String,PokemonBridge.Actor>,seed:Long):SpireE
         if(a=="levitate"&&move.type=="ground"||a=="flashfire"&&move.type=="fire"||a=="waterabsorb"&&move.type=="water")return 0 to 0
         val original=MoveCompatibility.multiplier(move.type,target.types)
         val mul=original
-        return referenceDamage(source,target,move,85,upgraded=upgraded,multiplier=mul,spread=spread) to referenceDamage(source,target,move,100,upgraded=upgraded,multiplier=mul,spread=spread)
+        val minHit=referenceDamage(source,target,move,85,upgraded=upgraded,multiplier=mul,spread=spread)
+        val maxHit=referenceDamage(source,target,move,100,upgraded=upgraded,multiplier=mul,spread=spread)
+        return (minHit*move.minHits) to (maxHit*move.maxHits)
     }
     override fun accuracy(source:SpireCombatant,target:SpireCombatant,move:SpireMove):Int {
         if(move.trainer)return 100
@@ -74,7 +87,9 @@ class NativeEffects(val actors:Map<String,PokemonBridge.Actor>,seed:Long):SpireE
         val acc=if(keen)maxOf(0,source.stages["accuracy"]?:0)else source.stages["accuracy"]?:0
         val eva=if(keen)minOf(0,target.stages["evasion"]?:0)else target.stages["evasion"]?:0
         val n=(acc-eva).coerceIn(-6,6);val mult=if(n>=0)(3.0+n)/3.0 else 3.0/(3.0-n)
-        return floor(move.accuracy*mult*(if(ability(source)=="compoundeyes")1.3 else 1.0)).toInt().coerceIn(0,100)
+        val speDiff=((target.stages["spe"]?:0)-(source.stages["spe"]?:0)).coerceAtLeast(0)
+        val speedEvade=if(!keen&&speDiff>=2)((speDiff-1)*4).coerceAtMost(16) else 0
+        return (floor(move.accuracy*mult*(if(ability(source)=="compoundeyes")1.3 else 1.0)).toInt()-speedEvade).coerceIn(0,100)
     }
     override fun canHit(source:SpireCombatant,target:SpireCombatant,move:SpireMove,battle:SpireBattle):Boolean {
         if(move.trainer)return true
@@ -110,7 +125,7 @@ class NativeEffects(val actors:Map<String,PokemonBridge.Actor>,seed:Long):SpireE
             if(mapped in setOf("poison","toxic")&&(target.types.any{it in setOf("poison","steel")}||ability=="immunity"))return
             if(mapped=="paralysis"&&("electric" in target.types||ability=="limber"))return
             if(mapped=="sleep"&&ability in setOf("insomnia","vitalspirit"))return
-            target.afflict(mapped,battle.round,if(mapped=="sleep")random.nextInt(1,4)else if(mapped=="paralysis")2 else 0)
+            target.afflict(mapped,battle.round,if(mapped=="sleep")random.nextInt(1,4)else 0)
         }else if(id in setOf("confusion","flinch")){
             if(id=="confusion"&&ability=="owntempo"||id=="flinch"&&ability=="innerfocus")return
             if(id !in target.statuses)target.afflict(id,battle.round,if(id=="confusion")random.nextInt(2,6)else 1)
@@ -129,8 +144,9 @@ class NativeEffects(val actors:Map<String,PokemonBridge.Actor>,seed:Long):SpireE
     override fun hit(source:SpireCombatant,target:SpireCombatant,move:SpireMove,damage:Int,battle:SpireBattle){
         if(move.trainer)return
         val m=spec(move);apply(source,target,m,battle,false)
-        if(m.obj("self")!=null&&!(ability(source)=="sheerforce"&&m.array("secondaries")?.size()?.let{it>0}==true))pendingSelf.add(source.uid)
-        if(ability(source)!="sheerforce")m.array("secondaries")?.forEach{v->val o=v.asJsonObject;if(random.nextInt(100)<o.number("chance",100))apply(source,target,o,battle)}
+        val secs=m.array("secondaries")?:m.obj("secondary")?.let{com.google.gson.JsonArray().apply{add(it)}}
+        if(m.obj("self")!=null&&!(ability(source)=="sheerforce"&&secs?.size()?.let{it>0}==true))pendingSelf.add(source.uid)
+        if(ability(source)!="sheerforce")secs?.forEach{v->val o=v.asJsonObject;if(random.nextInt(100)<o.number("chance",100))apply(source,target,o,battle)}
         val drain=MoveCompatibility.fraction(m,"drain")
         if(damage>0&&drain>0)source.heal((damage*drain).roundToInt().coerceAtLeast(1))
     }
