@@ -1,6 +1,6 @@
 # CobbleSpire / slaythecoblebus
 
-COBBLEVERSE 1.7.42 / Minecraft 1.21.1 / Fabric / Cobblemon 1.7.3용 독립 협동 로그라이크 애드온입니다. CobbleLeague·CobbleSynergy 의존성은 없습니다.
+COBBLEVERSE 1.8.0 / Minecraft 1.21.1 / Fabric / Cobblemon 1.8.4용 독립 협동 로그라이크 애드온입니다. CobbleLeague·CobbleSynergy 의존성은 없습니다.
 
 기본 진입 키는 **F10**이며 게임 키 설정에서 변경합니다. 설치된 기본 모드팩에서 F4·F6·F7·F8·F9·U는 다른 기능에 쓰이고 있어 피했습니다.
 
